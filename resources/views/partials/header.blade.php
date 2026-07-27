@@ -1,9 +1,7 @@
 {{-- resources/views/partials/header.blade.php --}}
 
 @php
-    $logo = ($settings?->logo && \Illuminate\Support\Facades\Storage::disk('public')->exists($settings->logo))
-        ? asset('storage/' . $settings->logo)
-        : asset('assets/images/Logo.png');
+    $logo = $settings?->logo_url ?: asset('assets/images/Logo.png');
 @endphp
 
 <header

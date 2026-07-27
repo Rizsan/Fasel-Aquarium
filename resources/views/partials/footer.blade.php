@@ -10,18 +10,18 @@
             {{-- Kolom 1 — Deskripsi & Sosial Media --}}
             <div>
                 <div class="flex items-center gap-2 mb-4">
-                    @if($settings?->logo && \Illuminate\Support\Facades\Storage::disk('public')->exists($settings->logo))
-                        <img
-                            src="{{ $settings->logo_url }}"
-                            class="w-8 h-8 rounded-lg object-cover"
-                            alt="{{ $settings?->app_name ?? 'Fasel Aquarium' }}">
-                    @else
-                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/>
-                            </svg>
-                        </div>
-                    @endif
+                    @if($settings?->logo_url)
+    <img
+        src="{{ $settings->logo_url }}"
+        class="w-8 h-8 rounded-lg object-cover"
+        alt="{{ $settings?->app_name ?? 'Fasel Aquarium' }}">
+@else
+    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/>
+        </svg>
+    </div>
+@endif
                     
                     <span class="text-white font-bold text-lg">
                         {{ $settings?->app_name ?? 'Fasel Aquarium' }}

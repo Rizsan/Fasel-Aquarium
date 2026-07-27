@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $about->title }} - {{ $settings->app_name }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    @if($settings?->favicon && Storage::disk('public')->exists($settings->favicon))
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ $about->title }} - {{ $settings->app_name }}</title>
+
+@vite(['resources/css/app.css', 'resources/js/app.js'])
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+@if($settings?->favicon_url)
     <link rel="icon" type="image/png" href="{{ $settings->favicon_url }}">
-    @else
+@else
     <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon.png') }}">
-    @endif
+@endif
 </head>
 <body class="bg-gray-50/50 text-gray-800 antialiased selection:bg-blue-500 selection:text-white">
     {{-- Navbar --}}
