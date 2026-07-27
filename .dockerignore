@@ -1,7 +1,8 @@
 .git
 .github
-vendor
+
 node_modules
+vendor
 
 storage/logs/*
 storage/framework/cache/*
@@ -11,5 +12,4 @@ storage/framework/views/*
 .env
 .env.*
 
-Dockerfile
 README.md

@@ -1,6 +1,6 @@
-# ============================================================
-# Stage 1 - Composer
-# ============================================================
+# ==========================================================
+# Stage 1 - Composer Dependencies
+# ==========================================================
 FROM composer:2 AS composer
 
 WORKDIR /app
@@ -9,8 +9,8 @@ COPY composer.json composer.lock ./
 
 RUN composer install \
     --no-dev \
-    --no-interaction \
     --prefer-dist \
+    --no-interaction \
     --optimize-autoloader \
     --no-scripts
 
@@ -18,10 +18,10 @@ COPY . .
 
 RUN composer dump-autoload --optimize
 
-# ============================================================
-# Stage 2 - Node (Vite Build)
-# ============================================================
-FROM node:22 AS node
+# ==========================================================
+# Stage 2 - Build Frontend
+# ==========================================================
+FROM node:22-alpine AS frontend
 
 WORKDIR /app
 
@@ -33,14 +33,16 @@ COPY . .
 
 RUN npm run build
 
-# ============================================================
+# ==========================================================
 # Stage 3 - Production
-# ============================================================
+# ==========================================================
 FROM php:8.3-cli
 
-# ------------------------------------------------------------
+WORKDIR /var/www/html
+
+# ----------------------------------------------------------
 # Install Linux Packages
-# ------------------------------------------------------------
+# ----------------------------------------------------------
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
@@ -53,57 +55,48 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libicu-dev \
-    libxslt1-dev \
-    libpq-dev \
-    libsqlite3-dev \
-    libcurl4-openssl-dev \
-    libssl-dev \
-    libgmp-dev \
-    libreadline-dev \
-    libldap2-dev \
-    libkrb5-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# ------------------------------------------------------------
-# Install PHP Extensions
-# ------------------------------------------------------------
+# ----------------------------------------------------------
+# Configure GD
+# ----------------------------------------------------------
 RUN docker-php-ext-configure gd \
     --with-freetype \
     --with-jpeg
 
+# ----------------------------------------------------------
+# PHP Extensions
+# ----------------------------------------------------------
 RUN docker-php-ext-install \
-    gd \
     pdo \
     pdo_mysql \
     mbstring \
     exif \
-    pcntl \
-    bcmath \
+    gd \
     intl \
-    zip
+    bcmath \
+    zip \
+    pcntl
 
-# ------------------------------------------------------------
-# Copy Composer
-# ------------------------------------------------------------
+# ----------------------------------------------------------
+# Composer
+# ----------------------------------------------------------
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www/html
-
-# ------------------------------------------------------------
-# Copy Laravel Project
-# ------------------------------------------------------------
+# ----------------------------------------------------------
+# Laravel Files
+# ----------------------------------------------------------
 COPY . .
 
-# vendor
 COPY --from=composer /app/vendor ./vendor
 
-# Vite Build
-COPY --from=node /app/public/build ./public/build
+COPY --from=frontend /app/public/build ./public/build
 
-# ------------------------------------------------------------
-# Laravel Permissions
-# ------------------------------------------------------------
-RUN mkdir -p storage/framework/cache \
+# ----------------------------------------------------------
+# Laravel Directories
+# ----------------------------------------------------------
+RUN mkdir -p \
+    storage/framework/cache \
     storage/framework/sessions \
     storage/framework/views \
     storage/logs \
@@ -111,13 +104,17 @@ RUN mkdir -p storage/framework/cache \
 
 RUN chmod -R 775 storage bootstrap/cache
 
-# ------------------------------------------------------------
-# Optimize Laravel
-# ------------------------------------------------------------
-RUN php artisan package:discover --ansi
+# ----------------------------------------------------------
+# Copy Entrypoint
+# ----------------------------------------------------------
+COPY docker/start.sh /usr/local/bin/start.sh
+
+RUN chmod +x /usr/local/bin/start.sh
 
 ENV APP_ENV=production
+ENV APP_DEBUG=false
+ENV LOG_CHANNEL=stderr
 
 EXPOSE 10000
 
-CMD php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
+ENTRYPOINT ["start.sh"]
