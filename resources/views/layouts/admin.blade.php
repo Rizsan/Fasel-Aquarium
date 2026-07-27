@@ -9,10 +9,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    @if($settings?->favicon && Storage::disk('public')->exists($settings->favicon))
-    <link rel="icon" type="image/png" href="{{ asset('storage/'.$settings->favicon) }}">
+
+    @if(!empty($settings?->favicon_url))
+        <link rel="icon" type="image/png" href="{{ $settings->favicon_url }}">
     @else
-    <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon.png') }}">
+        <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon.png') }}">
     @endif
     <style>
         [x-cloak] {

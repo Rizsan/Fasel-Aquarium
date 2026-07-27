@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     @if($settings?->favicon && Storage::disk('public')->exists($settings->favicon))
-    <link rel="icon" type="image/png" href="{{ asset('storage/'.$settings->favicon) }}">
+    <link rel="icon" type="image/png" href="{{ $settings->favicon_url }}">
     @else
     <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon.png') }}">
     @endif
@@ -19,8 +19,8 @@
     <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                @if($settings->logo)
-                    <img src="{{ asset('storage/' . $settings->logo) }}" alt="Logo" class="h-9 w-auto object-contain">
+                @if($settings?->logo)
+                    <img src="{{ $settings->logo_url }}" alt="Logo" class="h-9 w-auto object-contain">
                 @endif
                 <span class="font-bold text-xl tracking-tight bg-gradient-to-r from-gray-900 to-blue-900 bg-clip-text text-transparent">{{ $settings->app_name }}</span>
             </div>
@@ -86,9 +86,13 @@
                     </div>
                     <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">Tentang Kami</h2>
                     <div class="text-gray-600 leading-relaxed space-y-5 text-base sm:text-lg font-normal">
-                        @php
-                            $lines = explode("\n", nl2br($about->about_content));
-                        @endphp
+                        @foreach(explode("\n", $about->about_content) as $line)
+    @if(trim($line))
+        <p class="text-justify">
+            {{ $line }}
+        </p>
+    @endif
+@endforeach
                         @foreach($lines as $line)
                             @if(trim($line))
                                 <p class="text-justify">{!! $line !!}</p>
@@ -102,7 +106,7 @@
                         @foreach($galleries->take(4) as $gallery)
                             <div class="rounded-2xl overflow-hidden bg-white border border-gray-100 p-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
                                 <div class="rounded-xl overflow-hidden h-40 sm:h-48 relative">
-                                    <img src="{{ asset('storage/' . $gallery['path']) }}" 
+                                    <img src="{{ $gallery->image_url }}" 
                                          alt="Preview Gallery" 
                                          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                     <div class="absolute inset-0 bg-gradient-to-t from-gray-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -230,7 +234,7 @@
                     @foreach($galleries as $gallery)
                         <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-300 group cursor-pointer hover:-translate-y-1">
                             <div class="relative h-64 rounded-xl overflow-hidden">
-                                <img src="{{ asset('storage/' . $gallery['path']) }}" 
+                                <img src="{{ $gallery->image_url }}" 
                                      alt="Gallery Photo" 
                                      class="w-full h-full object-cover group-hover:scale-110 transition-all duration-500">
                                 <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 via-gray-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-5">

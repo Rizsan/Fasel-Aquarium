@@ -64,8 +64,8 @@
         <div class="mt-8">
             {{-- Identity Tab --}}
             <div x-show="activeTab === 'identity'">
-                @include('admin.settings.general')
-            </div>
+    @include('admin.settings.identity')
+</div>
 
             {{-- Contact Tab --}}
             <div x-show="activeTab === 'contact'">

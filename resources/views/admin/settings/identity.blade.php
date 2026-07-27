@@ -75,12 +75,21 @@
                 <div>
                     <p class="text-sm font-medium text-gray-700 mb-2">Preview</p>
                     <div class="border border-gray-300 rounded-lg p-4 bg-gray-50 h-40 flex items-center justify-center">
-                        @if($settings->logo)
-                            <img id="logoPreview" src="{{ asset('storage/' . $settings->logo) }}" alt="Logo" class="max-h-36">
-                        @else
-                            <img id="logoPreview" src="" alt="Logo" class="max-h-36" style="display:none">
-                            <p class="text-gray-500 text-sm" id="logoPlaceholder">Tidak ada logo</p>
-                        @endif
+                        <div class="border border-gray-300 rounded-lg p-4 bg-gray-50 h-40 flex items-center justify-center">
+
+    <img
+        id="logoPreview"
+        src="{{ $settings->logo ? $settings->logo_url : '' }}"
+        class="max-h-36 {{ $settings->logo ? '' : 'hidden' }}"
+        alt="Logo">
+
+    <p
+        id="logoPreviewPlaceholder"
+        class="{{ $settings->logo ? 'hidden' : '' }}">
+        Tidak ada logo
+    </p>
+
+</div>
                     </div>
                 </div>
             </div>
@@ -118,12 +127,21 @@
                 <div>
                     <p class="text-sm font-medium text-gray-700 mb-2">Preview</p>
                     <div class="border border-gray-300 rounded-lg p-4 bg-gray-50 h-40 flex items-center justify-center">
-                        @if($settings->favicon)
-                            <img id="faviconPreview" src="{{ asset('storage/' . $settings->favicon) }}" alt="Favicon" class="max-h-12">
-                        @else
-                            <img id="faviconPreview" src="" alt="Favicon" class="max-h-12" style="display:none">
-                            <p class="text-gray-500 text-sm" id="faviconPlaceholder">Tidak ada favicon</p>
-                        @endif
+                        <div class="border border-gray-300 rounded-lg p-4 bg-gray-50 h-40 flex items-center justify-center">
+
+    <img
+        id="faviconPreview"
+        src="{{ $settings->favicon ? $settings->favicon_url : '' }}"
+        class="max-h-12 {{ $settings->favicon ? '' : 'hidden' }}"
+        alt="Favicon">
+
+    <p
+        id="faviconPreviewPlaceholder"
+        class="{{ $settings->favicon ? 'hidden' : '' }}">
+        Tidak ada favicon
+    </p>
+
+</div>
                     </div>
                 </div>
             </div>

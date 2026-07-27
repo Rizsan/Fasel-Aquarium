@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     @if($settings?->favicon && Storage::disk('public')->exists($settings->favicon))
-        <link rel="icon" type="image/png" href="{{ asset('storage/'.$settings->favicon) }}">
+        <link rel="icon" type="image/png" href="{{ $settings->favicon_url }}">
     @else
         <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon.png') }}">
     @endif

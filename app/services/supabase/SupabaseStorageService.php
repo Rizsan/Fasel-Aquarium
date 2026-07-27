@@ -6,6 +6,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
+
 class SupabaseStorageService
 {
     protected string $url;
@@ -114,4 +115,19 @@ class SupabaseStorageService
         )
         ->successful();
     }
+public function uploadWebsiteAsset(UploadedFile $file): string
+{
+    return $this->upload(
+        $file,
+        env('SUPABASE_WEBSITE_BUCKET')
+    );
+}
+
+public function websiteAssetUrl(string $path): string
+{
+    return $this->url(
+        env('SUPABASE_WEBSITE_BUCKET'),
+        $path
+    );
+}
 }

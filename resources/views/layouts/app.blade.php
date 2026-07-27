@@ -18,11 +18,11 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     @stack('styles')
-    @if($settings?->favicon && Storage::disk('public')->exists($settings->favicon))
-    <link rel="icon" type="image/png" href="{{ asset('storage/'.$settings->favicon) }}">
-    @else
+    @if(!empty($settings?->favicon_url))
+    <link rel="icon" type="image/png" href="{{ $settings->favicon_url }}">
+@else
     <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon.png') }}">
-    @endif
+@endif
 </head>
 <body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
 

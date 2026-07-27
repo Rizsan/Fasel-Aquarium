@@ -191,49 +191,91 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             @for ($i = 1; $i <= 5; $i++)
+
                 @php
-                    $galleryKey = "gallery_{$i}";
-                    $galleryPath = $about->{$galleryKey};
+                    $gallery = $about->getGalleries()->firstWhere('key', "gallery_{$i}");
                 @endphp
-                
+
                 <div class="border border-gray-300 rounded-lg overflow-hidden hover:shadow-lg transition">
+
                     {{-- Image Preview --}}
                     <div class="h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
-                        @if($galleryPath)
-                            <img src="{{ asset('storage/' . $galleryPath) }}" alt="Gallery {{ $i }}" class="w-full h-full object-cover">
+                        @if($gallery)
+                            <img
+                                src="{{ $gallery['url'] }}"
+                                alt="Gallery {{ $i }}"
+                                class="w-full h-full object-cover"
+                            >
                         @else
                             <div class="text-center">
                                 <i class="fas fa-image text-4xl text-gray-300"></i>
-                                <p class="text-gray-400 text-sm mt-2">Tidak ada gambar</p>
+                                <p class="text-gray-400 text-sm mt-2">
+                                    Tidak ada gambar
+                                </p>
                             </div>
                         @endif
                     </div>
 
                     {{-- Action Buttons --}}
                     <div class="p-4 bg-white border-t border-gray-200">
-                        <p class="text-sm font-medium text-gray-700 mb-3">Galeri {{ $i }}</p>
+
+                        <p class="text-sm font-medium text-gray-700 mb-3">
+                            Galeri {{ $i }}
+                        </p>
 
                         <div class="flex gap-2">
-                            <form action="{{ route('admin.settings.gallery.upload', $i) }}" method="POST" enctype="multipart/form-data" class="flex-1">
+
+                            <form
+                                action="{{ route('admin.settings.gallery.upload', $i) }}"
+                                method="POST"
+                                enctype="multipart/form-data"
+                                class="flex-1"
+                            >
                                 @csrf
-                                <input type="file" name="gallery" accept="image/*" class="hidden" id="gallery_{{ $i }}" onchange="this.form.submit()">
-                                <button type="button" onclick="document.getElementById('gallery_{{ $i }}').click()" class="w-full px-3 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+
+                                <input
+                                    type="file"
+                                    name="gallery"
+                                    accept="image/*"
+                                    class="hidden"
+                                    id="gallery_{{ $i }}"
+                                    onchange="this.form.submit()"
+                                >
+
+                                <button
+                                    type="button"
+                                    onclick="document.getElementById('gallery_{{ $i }}').click()"
+                                    class="w-full px-3 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition flex items-center justify-center gap-1"
+                                >
                                     <i class="fas fa-upload"></i> Upload
                                 </button>
                             </form>
 
-                            @if($galleryPath)
-                                <form action="{{ route('admin.settings.gallery.delete', $i) }}" method="POST" class="flex-1" onsubmit="return confirm('Hapus galeri ini?')">
+                            @if($gallery)
+                                <form
+                                    action="{{ route('admin.settings.gallery.delete', $i) }}"
+                                    method="POST"
+                                    class="flex-1"
+                                    onsubmit="return confirm('Hapus galeri ini?')"
+                                >
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="w-full px-3 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition">
+
+                                    <button
+                                        type="submit"
+                                        class="w-full px-3 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition flex items-center justify-center gap-1"
+                                    >
                                         <i class="fas fa-trash"></i> Hapus
                                     </button>
                                 </form>
                             @endif
+
                         </div>
+
                     </div>
+
                 </div>
+
             @endfor
         </div>
     </div>

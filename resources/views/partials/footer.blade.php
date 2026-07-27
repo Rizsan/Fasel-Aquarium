@@ -12,7 +12,7 @@
                 <div class="flex items-center gap-2 mb-4">
                     @if($settings?->logo && \Illuminate\Support\Facades\Storage::disk('public')->exists($settings->logo))
                         <img
-                            src="{{ asset('storage/'.$settings->logo) }}"
+                            src="{{ $settings->logo_url }}"
                             class="w-8 h-8 rounded-lg object-cover"
                             alt="{{ $settings?->app_name ?? 'Fasel Aquarium' }}">
                     @else

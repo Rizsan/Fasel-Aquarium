@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Services\Supabase\SupabaseStorageService;
 
 class WebsiteSetting extends Model
 {
@@ -35,27 +36,52 @@ class WebsiteSetting extends Model
         'products_per_page' => 'integer',
     ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | Accessors
+    |--------------------------------------------------------------------------
+    */
+
+    public function getLogoUrlAttribute(): ?string
+    {
+        if (!$this->logo) {
+            return null;
+        }
+
+        return app(SupabaseStorageService::class)
+            ->websiteAssetUrl($this->logo);
+    }
+
+    public function getFaviconUrlAttribute(): ?string
+    {
+        if (!$this->favicon) {
+            return null;
+        }
+
+        return app(SupabaseStorageService::class)
+            ->websiteAssetUrl($this->favicon);
+    }
+
     /**
      * Get single setting menggunakan Cache & firstOrCreate agar aman dari race condition
      */
     public static function getInstance()
     {
-        
-            return self::firstOrCreate([], [
-                'app_name'          => 'Fasel Aquarium',
-                'slogan'            => 'Platform E-commerce Terpercaya Untuk Ikan Hias',
-                'email'             => 'info@faselaquarium.com',
-                'phone'             => '083131871300',
-                'whatsapp'          => '083131871300',
-                'address'           => 'Indramayu, Jawa Barat',
-                'latitude'          => -6.3334185,
-                'longitude'         => 108.3242836,
-                'timezone'          => 'Asia/Jakarta',
-                'date_format'       => 'd/m/Y',
-                'products_per_page' => 12,
-                'maintenance_mode'  => false,
-                'copyright_text'    => 'Semua Hak Dilindungi',
-            ]);
+        return self::firstOrCreate([], [
+            'app_name'          => 'Fasel Aquarium',
+            'slogan'            => 'Platform E-commerce Terpercaya Untuk Ikan Hias',
+            'email'             => 'info@faselaquarium.com',
+            'phone'             => '083131871300',
+            'whatsapp'          => '083131871300',
+            'address'           => 'Indramayu, Jawa Barat',
+            'latitude'          => -6.3334185,
+            'longitude'         => 108.3242836,
+            'timezone'          => 'Asia/Jakarta',
+            'date_format'       => 'd/m/Y',
+            'products_per_page' => 12,
+            'maintenance_mode'  => false,
+            'copyright_text'    => 'Semua Hak Dilindungi',
+        ]);
     }
 
     /**
@@ -70,11 +96,11 @@ class WebsiteSetting extends Model
     /**
      * Update setting dan otomatis membersihkan cache yang lama
      */
-   public static function updateSetting($key, $value)
-{
-    $setting = self::firstOrCreate([]);
-    $setting->update([$key => $value]);
+    public static function updateSetting($key, $value)
+    {
+        $setting = self::firstOrCreate([]);
+        $setting->update([$key => $value]);
 
-    return $setting;
-}
+        return $setting;
+    }
 }

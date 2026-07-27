@@ -2,41 +2,49 @@
 
 namespace App\Services;
 
+use App\Services\Supabase\SupabaseStorageService;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class SettingService
 {
-    protected $disk = 'public';
+    protected SupabaseStorageService $supabase;
+
+    public function __construct(SupabaseStorageService $supabase)
+    {
+        $this->supabase = $supabase;
+    }
 
     /**
-     * Upload file dan return path
+     * Upload file ke Supabase
      */
-    public function uploadFile(UploadedFile $file, string $directory = 'uploads', ?string $oldPath = null): string
+    public function uploadFile(
+        UploadedFile $file,
+        string $directory = 'uploads',
+        ?string $oldPath = null
+    ): string
     {
         try {
-            // Delete old file if exists
+
             if ($oldPath) {
                 $this->deleteFile($oldPath);
             }
 
-            // Generate unique filename
-            $filename = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-
-            // Store file
-            $path = $file->storeAs($directory, $filename, $this->disk);
-
-            return $path;
+            return $this->supabase->upload(
+                $file,
+                env('SUPABASE_WEBSITE_BUCKET'),
+                $directory
+            );
 
         } catch (\Exception $e) {
-            \Log::error('File upload failed: ' . $e->getMessage());
+
+            \Log::error('Upload gagal: '.$e->getMessage());
+
             throw $e;
         }
     }
 
     /**
-     * Delete file from storage
+     * Hapus file dari Supabase
      */
     public function deleteFile(?string $path): bool
     {
@@ -44,31 +52,21 @@ class SettingService
             return false;
         }
 
-        try {
-            if (Storage::disk($this->disk)->exists($path)) {
-                Storage::disk($this->disk)->delete($path);
-                return true;
-            }
-        } catch (\Exception $e) {
-            \Log::error('File delete failed: ' . $e->getMessage());
+        return $this->supabase->delete(
+            env('SUPABASE_WEBSITE_BUCKET'),
+            $path
+        );
+    }
+
+    /**
+     * Ambil URL file
+     */
+    public function getFileUrl(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
         }
 
-        return false;
-    }
-
-    /**
-     * Get file URL
-     */
-    public function getFileUrl(string $path): string
-    {
-        return Storage::disk($this->disk)->url($path);
-    }
-
-    /**
-     * Check if file exists
-     */
-    public function fileExists(string $path): bool
-    {
-        return Storage::disk($this->disk)->exists($path);
+        return $this->supabase->websiteAssetUrl($path);
     }
 }

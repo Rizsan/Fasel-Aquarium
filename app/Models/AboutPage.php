@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
+use App\Services\Supabase\SupabaseStorageService;
 
 class AboutPage extends Model
 {
@@ -30,6 +31,59 @@ class AboutPage extends Model
         'gallery_5',
     ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | Helper Methods
+    |--------------------------------------------------------------------------
+    */
+
+    protected function galleryUrl(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+
+        return app(SupabaseStorageService::class)
+            ->websiteAssetUrl($path);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Accessors
+    |--------------------------------------------------------------------------
+    */
+
+    public function getGallery1UrlAttribute(): ?string
+    {
+        return $this->galleryUrl($this->gallery_1);
+    }
+
+    public function getGallery2UrlAttribute(): ?string
+    {
+        return $this->galleryUrl($this->gallery_2);
+    }
+
+    public function getGallery3UrlAttribute(): ?string
+    {
+        return $this->galleryUrl($this->gallery_3);
+    }
+
+    public function getGallery4UrlAttribute(): ?string
+    {
+        return $this->galleryUrl($this->gallery_4);
+    }
+
+    public function getGallery5UrlAttribute(): ?string
+    {
+        return $this->galleryUrl($this->gallery_5);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Methods
+    |--------------------------------------------------------------------------
+    */
+
     /**
      * Get single about page atau create default jika tidak ada
      */
@@ -42,23 +96,27 @@ class AboutPage extends Model
     }
 
     /**
-     * Get all galleries
+     * Get all galleries as Collection
      */
     public function getGalleries(): Collection
-{
-    $galleries = [];
+    {
+        $galleries = [];
 
-    for ($i = 1; $i <= 5; $i++) {
-        $galleryKey = "gallery_{$i}";
+        for ($i = 1; $i <= 5; $i++) {
 
-        if (!empty($this->{$galleryKey})) {
-            $galleries[] = [
-                'key'  => $galleryKey,
-                'path' => $this->{$galleryKey},
-            ];
+            $pathField = "gallery_{$i}";
+            $urlField  = "gallery_{$i}_url";
+
+            if ($this->{$pathField}) {
+
+                $galleries[] = [
+                    'key'  => $pathField,
+                    'path' => $this->{$pathField},
+                    'url'  => $this->{$urlField},
+                ];
+            }
         }
-    }
 
-    return collect($galleries);
-}
+        return collect($galleries);
+    }
 }
