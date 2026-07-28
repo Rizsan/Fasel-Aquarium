@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
-@if($settings?->favicon_url)
+@if(!empty($settings?->favicon_url))
     <link rel="icon" type="image/png" href="{{ $settings->favicon_url }}">
 @else
     <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon.png') }}">
@@ -104,7 +104,7 @@
                         @foreach($galleries->take(4) as $gallery)
                             <div class="rounded-2xl overflow-hidden bg-white border border-gray-100 p-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
                                 <div class="rounded-xl overflow-hidden h-40 sm:h-48 relative">
-                                    <img src="{{ $gallery->image_url }}" 
+                                    <img src="{{ $gallery['url'] }}" 
                                          alt="Preview Gallery" 
                                          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                     <div class="absolute inset-0 bg-gradient-to-t from-gray-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -232,7 +232,7 @@
                     @foreach($galleries as $gallery)
                         <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-300 group cursor-pointer hover:-translate-y-1">
                             <div class="relative h-64 rounded-xl overflow-hidden">
-                                <img src="{{ $gallery->image_url }}" 
+                                <img src="{{ $gallery['url'] }}" 
                                      alt="Gallery Photo" 
                                      class="w-full h-full object-cover group-hover:scale-110 transition-all duration-500">
                                 <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 via-gray-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-5">

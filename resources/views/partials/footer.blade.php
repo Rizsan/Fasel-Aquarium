@@ -72,6 +72,19 @@
                             Tentang Kami
                         </a>
                     </li>
+                    <li>
+    <a href="{{ route('terms') }}"
+       class="text-gray-400 hover:text-white transition flex items-center gap-2">
+        Syarat & Ketentuan
+    </a>
+</li>
+
+<li>
+    <a href="{{ route('privacy') }}"
+       class="text-gray-400 hover:text-white transition flex items-center gap-2">
+        Kebijakan Privasi
+    </a>
+</li>
                 </ul>
 
                 <h3 class="text-white font-semibold mt-6 mb-3 text-sm uppercase tracking-wider">Kontak</h3>
