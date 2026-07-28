@@ -57,12 +57,29 @@
         
             {{-- Preview --}}
             <div class="w-24 h-24 rounded-xl border border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center">
-                <img
-                    id="preview-image"
-                    src="{{ $product->image_url }}"
-                    class="object-cover w-full h-full"
-                >
-            </div>
+
+    @if($product?->image_url)
+        <img
+            id="preview-image"
+            src="{{ $product->image_url }}"
+            class="object-cover w-full h-full"
+            alt="Preview"
+        >
+    @else
+        <img
+            id="preview-image"
+            src=""
+            class="hidden object-cover w-full h-full"
+            alt="Preview"
+        >
+
+        <svg id="placeholder-icon" class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16l4-4 4 4 6-6 2 2v6H4z"/>
+        </svg>
+    @endif
+
+</div>
 
             {{-- Input --}}
             <div class="flex-1">
