@@ -37,7 +37,7 @@
         @php
             $statCards = [
     ['label' => 'Total',                 'key' => 'total',             'color' => 'gray'],
-    ['label' => 'Menunggu Pembayaran',   'key' => 'waiting_payment',   'color' => 'yellow'],
+    ['label' => 'Menunggu Pembayaran',   'key' => 'pending',   'color' => 'yellow'],
     ['label' => 'Diproses',              'key' => 'processing',        'color' => 'indigo'],
     ['label' => 'Selesai',               'key' => 'completed',         'color' => 'green'],
     ['label' => 'Dibatalkan',            'key' => 'cancelled',         'color' => 'red'],
@@ -70,7 +70,8 @@
                 <select name="status"
                         class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
                     <option value="">Semua Status</option>
-                    <option value="waiting_payment" {{ request('status') === 'waiting_payment' ? 'selected' : '' }}>
+                    <option value="pending"
+    {{ request('status') === 'pending' ? 'selected' : '' }}>
     Menunggu Pembayaran
 </option>
 

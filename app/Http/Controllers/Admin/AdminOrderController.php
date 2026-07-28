@@ -48,7 +48,7 @@ class AdminOrderController extends Controller
 
         $stats = [
     'total'               => Order::count(),
-    'waiting_payment'     => Order::where('status', 'waiting_payment')->count(),
+    'pending'     => Order::where('status', 'pending')->count(),
     'ready_for_pickup'    => Order::where('status', 'ready_for_pickup')->count(),
     'processing'          => Order::where('status', 'processing')->count(),
     'completed'           => Order::where('status', 'completed')->count(),

@@ -61,7 +61,7 @@
     @if($product?->image_url)
         <img
             id="preview-image"
-            src="{{ $product->image_url }}"
+            src="{{ $product?->image_url ?? asset('assets/images/no-image.png') }}"
             class="object-cover w-full h-full"
             alt="Preview"
         >
@@ -164,9 +164,18 @@ function previewImage(event) {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = function(e){
-        document.getElementById('preview-image').src = e.target.result;
+
+    reader.onload = function(e) {
+        const img = document.getElementById('preview-image');
+        img.src = e.target.result;
+        img.classList.remove('hidden');
+
+        const placeholder = document.getElementById('placeholder-icon');
+        if (placeholder) {
+            placeholder.remove();
+        }
     };
+
     reader.readAsDataURL(file);
 }
 </script>
