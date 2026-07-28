@@ -425,18 +425,22 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
                         <div class="sm:col-span-2">
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                                Password Saat Ini
-                            </label>
+    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+        Password Saat Ini
+    </label>
 
-                            <div class="relative">
-                                <input
-                                    :type="showCurrentPassword ? 'text' : 'password'"
-                                    name="current_password"
-                                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
-                                >
-                            </div>
-                        </div>
+    <div class="relative">
+        <input
+            :type="showCurrentPassword ? 'text' : 'password'"
+            name="current_password"
+            id="current_password"
+            autocomplete="new-password"
+            readonly
+            onfocus="this.removeAttribute('readonly');"
+            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+        >
+    </div>
+</div>
 
                         <div>
                             <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
