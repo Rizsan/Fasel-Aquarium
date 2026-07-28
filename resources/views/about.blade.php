@@ -89,19 +89,14 @@
                     </div>
                     <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">Tentang Kami</h2>
                     <div class="text-gray-600 leading-relaxed space-y-5 text-base sm:text-lg font-normal">
-                        @foreach(explode("\n", $about->about_content) as $line)
-    @if(trim($line))
-        <p class="text-justify">
-            {{ $line }}
-        </p>
-    @endif
-@endforeach
-                        @foreach($lines as $line)
-                            @if(trim($line))
-                                <p class="text-justify">{!! $line !!}</p>
-                            @endif
-                        @endforeach
-                    </div>
+    @foreach(explode("\n", $about->about_content) as $line)
+        @if(trim($line))
+            <p class="text-justify">
+                {{ $line }}
+            </p>
+        @endif
+    @endforeach
+</div>
                 </div>
 
                 <div class="lg:col-span-6">
