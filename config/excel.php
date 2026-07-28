@@ -315,66 +315,45 @@ return [
 
     'temporary_files' => [
 
-        /*
-        |--------------------------------------------------------------------------
-        | Local Temporary Path
-        |--------------------------------------------------------------------------
-        |
-        | When exporting and importing files, we use a temporary file, before
-        | storing reading or downloading. Here you can customize that path.
-        | permissions is an array with the permission flags for the directory (dir)
-        | and the create file (file).
-        |
-        */
-        'local_path'          => storage_path('framework/cache/laravel-excel'),
+    /*
+    |--------------------------------------------------------------------------
+    | Local Temporary Path
+    |--------------------------------------------------------------------------
+    */
 
-        /*
-        |--------------------------------------------------------------------------
-        | Local Temporary Path Permissions
-        |--------------------------------------------------------------------------
-        |
-        | Permissions is an array with the permission flags for the directory (dir)
-        | and the create file (file).
-        | If omitted the default permissions of the filesystem will be used.
-        |
-        */
-        'local_permissions'   => [
-            // 'dir'  => 0755,
-            // 'file' => 0644,
-        ],
+    'local_path' => env(
+        'EXCEL_TEMP_PATH',
+        app()->environment('production')
+            ? '/tmp'
+            : storage_path('framework/cache/laravel-excel')
+    ),
 
-        /*
-        |--------------------------------------------------------------------------
-        | Remote Temporary Disk
-        |--------------------------------------------------------------------------
-        |
-        | When dealing with a multi server setup with queues in which you
-        | cannot rely on having a shared local temporary path, you might
-        | want to store the temporary file on a shared disk. During the
-        | queue executing, we'll retrieve the temporary file from that
-        | location instead. When left to null, it will always use
-        | the local path. This setting only has effect when using
-        | in conjunction with queued imports and exports.
-        |
-        */
-        'remote_disk'         => null,
-        'remote_prefix'       => null,
+    /*
+    |--------------------------------------------------------------------------
+    | Local Temporary Path Permissions
+    |--------------------------------------------------------------------------
+    */
 
-        /*
-        |--------------------------------------------------------------------------
-        | Force Resync
-        |--------------------------------------------------------------------------
-        |
-        | When dealing with a multi server setup as above, it's possible
-        | for the clean up that occurs after entire queue has been run to only
-        | cleanup the server that the last AfterImportJob runs on. The rest of the server
-        | would still have the local temporary file stored on it. In this case your
-        | local storage limits can be exceeded and future imports won't be processed.
-        | To mitigate this you can set this config value to be true, so that after every
-        | queued chunk is processed the local temporary file is deleted on the server that
-        | processed it.
-        |
-        */
-        'force_resync_remote' => null,
+    'local_permissions' => [
+        // 'dir'  => 0755,
+        // 'file' => 0644,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Remote Temporary Disk
+    |--------------------------------------------------------------------------
+    */
+
+    'remote_disk' => null,
+    'remote_prefix' => null,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Force Resync
+    |--------------------------------------------------------------------------
+    */
+
+    'force_resync_remote' => null,
+],
 ];
