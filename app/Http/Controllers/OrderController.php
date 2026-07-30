@@ -560,7 +560,6 @@ return redirect()
         }
     }
 
-    use Barryvdh\DomPDF\Facade\Pdf;
 
 public function downloadPdf(Order $order)
 {
