@@ -21,7 +21,7 @@
                     label="Nama Produk"
                     name="name"
                     :value="$product?->name"
-                    placeholder="Contoh: Laptop Gaming Pro X"
+                    placeholder="Contoh: Guppy"
                     required
                 />
             </div>

@@ -11,43 +11,32 @@
     <div class="max-w-4xl mx-auto space-y-6">
 
         {{-- ============================================================
-             FLASH MESSAGES
+             FLASH MESSAGES (SWEETALERT)
              ============================================================ --}}
         @if(session('success'))
-        <div
-            x-data="{ show: true }"
-            x-show="show"
-            x-init="setTimeout(() => show = false, 4000)"
-            x-transition
-            class="flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-5 py-4"
-        >
-            <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-
-            <p class="text-sm font-medium">
-                {{ session('success') }}
-            </p>
-        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session('success') }}',
+                confirmButtonColor: '#2563eb'
+            });
+        });
+        </script>
         @endif
 
         @if(session('error'))
-        <div
-            x-data="{ show: true }"
-            x-show="show"
-            x-init="setTimeout(() => show = false, 5000)"
-            x-transition
-            class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 rounded-xl px-5 py-4"
-        >
-            <svg class="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-
-            <p class="text-sm font-medium">
-                {{ session('error') }}
-            </p>
-        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
+                confirmButtonColor: '#dc2626'
+            });
+        });
+        </script>
         @endif
 
         @if($errors->any())
@@ -177,6 +166,7 @@
 
             </div>
         </div>
+
         {{-- ============================================================
              UPDATE PROFILE FORM
              ============================================================ --}}
@@ -234,39 +224,41 @@
                             </div>
 
                             <label
-    for="profile_photo"
-    class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl cursor-pointer transition"
->
-    Pilih Foto
-</label>
+                                for="profile_photo"
+                                class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl cursor-pointer transition"
+                            >
+                                Pilih Foto
+                            </label>
 
-<input
-    type="file"
-    id="profile_photo"
-    name="profile_photo"
-    accept="image/jpg,image/jpeg,image/png,image/webp"
-    class="hidden"
-    @change="handlePhotoPreview($event)"
->
+                            <input
+                                type="file"
+                                id="profile_photo"
+                                name="profile_photo"
+                                accept="image/jpg,image/jpeg,image/png,image/webp"
+                                class="hidden"
+                                @change="handlePhotoPreview($event)"
+                            >
 
-@if($user->profile_photo)
-    <button
-        type="button"
-        onclick="if(confirm('Hapus foto profil?')) document.getElementById('delete-photo-form').submit();"
-        class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition"
-    >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-        </svg>
+                            @if($user->profile_photo)
+                                <button
+                                    type="button"
+                                    onclick="confirmDeletePhoto()"
+                                    class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                              stroke-width="2"
+                                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
 
-        Hapus Foto
-    </button>
-@endif
+                                    Hapus Foto
+                                </button>
+                            @endif
 
-<p class="text-xs text-gray-400 text-center">
-    JPG, PNG, WEBP. Maks. 2MB
-</p>
+                            <p class="text-xs text-gray-400 text-center">
+                                JPG, PNG, WEBP. Maks. 2MB
+                            </p>
 
                         </div>
                     </div>
@@ -386,20 +378,20 @@
 
                             {{-- CURRENT PASSWORD --}}
                             <div class="sm:col-span-2">
-    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-        Password Saat Ini
-    </label>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                                    Password Saat Ini
+                                </label>
 
-    <input
-        :type="showCurrentPassword ? 'text' : 'password'"
-        name="current_password"
-        id="current_password"
-        autocomplete="new-password"
-        readonly
-        onfocus="this.removeAttribute('readonly');"
-        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
-    >
-</div>
+                                <input
+                                    :type="showCurrentPassword ? 'text' : 'password'"
+                                    name="current_password"
+                                    id="current_password"
+                                    autocomplete="new-password"
+                                    readonly
+                                    onfocus="this.removeAttribute('readonly');"
+                                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                                >
+                            </div>
 
                             {{-- NEW PASSWORD --}}
                             <div>
@@ -479,6 +471,17 @@
 
         </form>
 
+        {{-- FORM DELETE PHOTO (Point 5) --}}
+        <form
+            id="delete-photo-form"
+            action="{{ route('profile.photo.delete') }}"
+            method="POST"
+            class="hidden"
+        >
+            @csrf
+            @method('DELETE')
+        </form>
+
     </div>
 </div>
 @endsection
@@ -520,6 +523,24 @@ function profilePage() {
             reader.readAsDataURL(file);
         }
     };
+}
+
+// Function confirmDeletePhoto (Point 6)
+function confirmDeletePhoto() {
+    Swal.fire({
+        title: 'Hapus Foto?',
+        text: 'Foto profil akan dihapus secara permanen.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('delete-photo-form').submit();
+        }
+    });
 }
 </script>
 @endpush

@@ -16,7 +16,8 @@
 
     {{-- Alpine.js --}}
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @stack('styles')
     @if(!empty($settings?->favicon_url))
     <link rel="icon" type="image/png" href="{{ $settings->favicon_url }}">

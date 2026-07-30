@@ -105,19 +105,32 @@ class ProfileController extends Controller
     Request $request,
     SupabaseStorageService $storage
 ): RedirectResponse
-    {
-        $user = Auth::user();
+{
+    $user = Auth::user();
 
-        if ($user->profile_photo) {
-            $storage->delete(
-    env('SUPABASE_PROFILE_BUCKET'),
-    $user->profile_photo
-);
-            $user->update(['profile_photo' => null]);
-        }
-
+    if (!$user->profile_photo) {
         return redirect()
             ->route('profile.index')
-            ->with('success', 'Foto profil berhasil dihapus.');
+            ->with('error', 'Foto profil tidak ditemukan.');
     }
+
+    $deleted = $storage->delete(
+        env('SUPABASE_PROFILE_BUCKET'),
+        $user->profile_photo
+    );
+
+    if (!$deleted) {
+        return redirect()
+            ->route('profile.index')
+            ->with('error', 'Gagal menghapus foto profil.');
+    }
+
+    $user->update([
+        'profile_photo' => null
+    ]);
+
+    return redirect()
+        ->route('profile.index')
+        ->with('success', 'Foto profil berhasil dihapus.');
+}
 }
