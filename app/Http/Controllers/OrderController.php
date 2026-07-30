@@ -565,7 +565,7 @@ public function downloadPdf(Order $order)
 {
     $order->load('items.product', 'user');
 
-    $pdf = Pdf::loadView('orders.pdf', compact('order'));
+    $pdf = Pdf::loadView('orders.download-pdf', compact('order'));
 
     return $pdf->download("Invoice-{$order->order_number}.pdf");
 }
