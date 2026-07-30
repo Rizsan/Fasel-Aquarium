@@ -7,44 +7,32 @@
 <div class="space-y-6" x-data="adminProfile()">
 
     {{-- ============================================================
-         FLASH MESSAGES
+         FLASH MESSAGES (SWEETALERT2)
          ============================================================ --}}
     @if(session('success'))
-    <div
-        x-data="{ show: true }"
-        x-show="show"
-        x-init="setTimeout(() => show = false, 4000)"
-        x-transition
-        class="flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-5 py-4"
-    >
-        <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-
-        <p class="text-sm font-medium">
-            {{ session('success') }}
-        </p>
-    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: '{{ session("success") }}',
+            confirmButtonColor: '#2563eb'
+        });
+    });
+    </script>
     @endif
 
     @if(session('error'))
-    <div
-        x-data="{ show: true }"
-        x-show="show"
-        x-init="setTimeout(() => show = false, 5000)"
-        x-transition
-        class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 rounded-xl px-5 py-4"
-    >
-        <svg class="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-
-        <p class="text-sm font-medium">
-            {{ session('error') }}
-        </p>
-    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: '{{ session("error") }}',
+            confirmButtonColor: '#dc2626'
+        });
+    });
+    </script>
     @endif
 
     @if($errors->any())
@@ -181,15 +169,17 @@
 
         </div>
     </div>
-<form
-    id="delete-photo-form"
-    method="POST"
-    action="{{ route('admin.profile.photo.delete') }}"
-    class="hidden"
->
-    @csrf
-    @method('DELETE')
-</form>
+
+    <form
+        id="delete-photo-form"
+        method="POST"
+        action="{{ route('admin.profile.photo.delete') }}"
+        class="hidden"
+    >
+        @csrf
+        @method('DELETE')
+    </form>
+
     {{-- ============================================================
          UPDATE PROFILE FORM
          ============================================================ --}}
@@ -197,7 +187,7 @@
         method="POST"
         action="{{ route('admin.profile.update') }}"
         enctype="multipart/form-data"
-        @submit.prevent="handleSubmit"
+        @submit.prevent="handleSubmit($event)"
     >
         @csrf
         @method('PUT')
@@ -218,40 +208,40 @@
 
                         <div class="w-28 h-28 rounded-2xl overflow-hidden border-2 border-gray-200">
 
-    {{-- Preview --}}
-    <img
-        x-show="previewUrl"
-        :src="previewUrl"
-        class="w-full h-full object-cover"
-        alt="Preview"
-        x-cloak
-    >
+                            {{-- Preview --}}
+                            <img
+                                x-show="previewUrl"
+                                :src="previewUrl"
+                                class="w-full h-full object-cover"
+                                alt="Preview"
+                                x-cloak
+                            >
 
-    {{-- Foto dari database --}}
-    <div
-        x-show="!previewUrl"
-        class="w-full h-full"
-        x-cloak
-    >
+                            {{-- Foto dari database --}}
+                            <div
+                                x-show="!previewUrl"
+                                class="w-full h-full"
+                                x-cloak
+                            >
 
-        @if(!empty($user->profile_photo_url))
-            <img
-                src="{{ $user->profile_photo_url }}"
-                alt="{{ $user->name }}"
-                class="w-full h-full object-cover"
-                loading="lazy"
-            >
-        @else
-            <div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-                <span class="text-white text-3xl font-bold">
-                    {{ $user->initials }}
-                </span>
-            </div>
-        @endif
+                                @if(!empty($user->profile_photo_url))
+                                    <img
+                                        src="{{ $user->profile_photo_url }}"
+                                        alt="{{ $user->name }}"
+                                        class="w-full h-full object-cover"
+                                        loading="lazy"
+                                    >
+                                @else
+                                    <div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
+                                        <span class="text-white text-3xl font-bold">
+                                            {{ $user->initials }}
+                                        </span>
+                                    </div>
+                                @endif
 
-    </div>
+                            </div>
 
-</div>
+                        </div>
 
                         <label
                             for="profile_photo"
@@ -259,31 +249,31 @@
                         >
                             Pilih Foto
                         </label>
+
                         @if(!empty($user->profile_photo))
+                        <button
+                            type="button"
+                            onclick="confirmDeletePhoto()"
+                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition"
+                        >
+                            <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                            </svg>
 
-<button
-    type="button"
-    onclick="if(confirm('Yakin ingin menghapus foto profil?')) document.getElementById('delete-photo-form').submit()"
-    class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition"
->
-    <svg
-        class="w-4 h-4"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-    >
-        <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-        />
-    </svg>
+                            Hapus Foto
+                        </button>
+                        @endif
 
-    Hapus Foto
-</button>
-
-@endif
                         <input
                             type="file"
                             id="profile_photo"
@@ -425,22 +415,22 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
                         <div class="sm:col-span-2">
-    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-        Password Saat Ini
-    </label>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                                Password Saat Ini
+                            </label>
 
-    <div class="relative">
-        <input
-            :type="showCurrentPassword ? 'text' : 'password'"
-            name="current_password"
-            id="current_password"
-            autocomplete="new-password"
-            readonly
-            onfocus="this.removeAttribute('readonly');"
-            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
-        >
-    </div>
-</div>
+                            <div class="relative">
+                                <input
+                                    :type="showCurrentPassword ? 'text' : 'password'"
+                                    name="current_password"
+                                    id="current_password"
+                                    autocomplete="new-password"
+                                    readonly
+                                    onfocus="this.removeAttribute('readonly');"
+                                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                                >
+                            </div>
+                        </div>
 
                         <div>
                             <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
@@ -479,7 +469,6 @@
                         Batal
                     </a>
 
-                    <!-- PERBAIKAN UTAMA PADA TOMBOL DI BAWAH -->
                     <button
                         type="submit"
                         :disabled="loading"
@@ -533,9 +522,25 @@ function adminProfile() {
         loading: false,
 
         handleSubmit(event) {
-            this.loading = true;
-            this.$nextTick(() => {
-                event.target.submit();
+            Swal.fire({
+                title: 'Simpan perubahan?',
+                text: 'Data profil administrator akan diperbarui.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Simpan',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#6b7280'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                this.loading = true;
+
+                this.$nextTick(() => {
+                    event.target.submit();
+                });
             });
         },
 
@@ -544,7 +549,12 @@ function adminProfile() {
             if (!file) return;
 
             if (file.size > 2 * 1024 * 1024) {
-                alert('Ukuran file maksimal 2MB');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Ukuran Berlebihan',
+                    text: 'Ukuran file maksimal 2MB',
+                    confirmButtonColor: '#2563eb'
+                });
                 event.target.value = '';
                 return;
             }
@@ -556,6 +566,23 @@ function adminProfile() {
             reader.readAsDataURL(file);
         }
     };
+}
+
+function confirmDeletePhoto() {
+    Swal.fire({
+        title: 'Hapus Foto?',
+        text: 'Foto profil administrator akan dihapus permanen.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('delete-photo-form').submit();
+        }
+    });
 }
 </script>
 @endpush

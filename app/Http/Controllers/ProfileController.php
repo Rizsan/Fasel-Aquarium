@@ -46,6 +46,7 @@ class ProfileController extends Controller
             'phone'         => ['nullable', 'string', 'max:20'],
             'address'       => ['nullable', 'string', 'max:1000'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'current_password' => ['nullable'],
             'password'      => ['nullable', 'string', 'min:8', 'confirmed'],
         ], [
             'name.required'          => 'Nama wajib diisi.',

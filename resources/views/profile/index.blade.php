@@ -174,7 +174,7 @@
             method="POST"
             action="{{ route('profile.update') }}"
             enctype="multipart/form-data"
-            @submit.prevent="handleSubmit"
+            @submit.prevent="handleSubmit($event)"
         >
             @csrf
             @method('PUT')
@@ -389,7 +389,8 @@
                                     autocomplete="new-password"
                                     readonly
                                     onfocus="this.removeAttribute('readonly');"
-                                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                                    :required="newPassword.length > 0"
+                                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                             </div>
 
@@ -400,9 +401,10 @@
                                 </label>
 
                                 <input
+                                    x-model="newPassword"
                                     :type="showNewPassword ? 'text' : 'password'"
                                     name="password"
-                                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                             </div>
 
@@ -415,7 +417,7 @@
                                 <input
                                     :type="showNewPassword ? 'text' : 'password'"
                                     name="password_confirmation"
-                                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                             </div>
 
@@ -471,7 +473,7 @@
 
         </form>
 
-        {{-- FORM DELETE PHOTO (Point 5) --}}
+        {{-- FORM DELETE PHOTO --}}
         <form
             id="delete-photo-form"
             action="{{ route('profile.photo.delete') }}"
@@ -493,13 +495,29 @@ function profilePage() {
         previewUrl: null,
         showCurrentPassword: false,
         showNewPassword: false,
+        newPassword: '',
         loading: false,
 
         handleSubmit(event) {
-            this.loading = true;
+            const form = event.target;
 
-            this.$nextTick(() => {
-                event.target.submit();
+            Swal.fire({
+                title: 'Simpan perubahan?',
+                text: 'Profil akan diperbarui.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Simpan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                this.loading = true;
+
+                this.$nextTick(() => {
+                    form.submit();
+                });
             });
         },
 
@@ -509,7 +527,12 @@ function profilePage() {
             if (!file) return;
 
             if (file.size > 2 * 1024 * 1024) {
-                alert('Ukuran file maksimal 2MB');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Ukuran Terlalu Besar',
+                    text: 'Ukuran file maksimal adalah 2MB.',
+                    confirmButtonColor: '#2563eb'
+                });
                 event.target.value = '';
                 return;
             }
@@ -525,7 +548,6 @@ function profilePage() {
     };
 }
 
-// Function confirmDeletePhoto (Point 6)
 function confirmDeletePhoto() {
     Swal.fire({
         title: 'Hapus Foto?',
