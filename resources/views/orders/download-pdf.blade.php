@@ -137,8 +137,8 @@
         <h2>Fasel Aquarium</h2>
 
         <p>Sistem Jual Beli Ikan Hias</p>
-        <p>Email : info@faselaquarium.com</p>
-        <p>Telepon : 08xxxxxxxxxx</p>
+        <p>Email : faselaquarium@gmail.com</p>
+        <p>Telepon : 083131871300</p>
     </div>
 
     <div class="invoice-title">
