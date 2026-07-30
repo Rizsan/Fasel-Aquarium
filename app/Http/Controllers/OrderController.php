@@ -569,36 +569,42 @@ public function downloadPdf(Order $order)
 
     $order->load('items.product', 'user');
 
-    // 1. Ambil pengaturan website
     $settings = WebsiteSetting::first();
-
-    // 2. Ambil URL logo dari Supabase
     $logoUrl = $settings?->logo_url;
     $logoBase64 = null;
 
-    if ($logoUrl) {
-        try {
-            // Unduh file gambar dari Supabase
-            $response = Http::timeout(5)->get($logoUrl);
+    // Periksa apakah ekstensi GD aktif di Vercel
+    $isGdInstalled = extension_loaded('gd');
 
-            if ($response->successful()) {
-                $type = $response->header('Content-Type') ?? 'image/png';
-                $base64 = base64_encode($response->body());
-                
-                // Format Data URI untuk DomPDF
-                $logoBase64 = 'data:' . $type . ';base64,' . $base64;
+    if ($logoUrl) {
+        // Jika GD tidak ada di Vercel, hanya izinkan jika filenya SVG
+        $isSvg = str_contains(strtolower($logoUrl), '.svg');
+
+        if ($isGdInstalled || $isSvg) {
+            try {
+                $response = Http::timeout(5)->get($logoUrl);
+
+                if ($response->successful()) {
+                    $type = $response->header('Content-Type') ?? ($isSvg ? 'image/svg+xml' : 'image/png');
+                    $base64 = base64_encode($response->body());
+                    $logoBase64 = 'data:' . $type . ';base64,' . $base64;
+                }
+            } catch (\Exception $e) {
+                \Log::error('Gagal mengambil logo PDF dari Supabase: ' . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            // Jika koneksi ke Supabase gagal/timeout, biarkan $logoBase64 null
-            \Log::error('Gagal mengambil logo PDF dari Supabase: ' . $e->getMessage());
         }
     }
 
-    // 3. Render PDF
+    // Load PDF dengan Opsi DomPDF
     $pdf = Pdf::loadView('orders.download-pdf', [
         'order'    => $order,
         'settings' => $settings,
-        'logo'     => $logoBase64, // Kirim Base64 ke Blade
+        'logo'     => $logoBase64,
+    ])->setOptions([
+        'isPhpEnabled'          => false,
+        'isRemoteEnabled'       => false,
+        'isHtml5ParserEnabled'  => true,
+        'isFontSubsettingEnabled' => false,
     ]);
 
     return $pdf->download("Invoice-{$order->order_number}.pdf");
