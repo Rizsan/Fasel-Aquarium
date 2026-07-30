@@ -200,8 +200,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{order}/finish', [OrderController::class, 'finish'])
             ->name('finish');
 
-        Route::get('/orders/{order}/download-pdf', [OrderController::class, 'downloadPdf'])
-            ->name('orders.download-pdf');
+        Route::get('/{order}/download-pdf', [OrderController::class, 'downloadPdf'])
+            ->name('download-pdf');
     });
 });
 
