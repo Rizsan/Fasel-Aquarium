@@ -15,6 +15,8 @@ use Illuminate\View\View;
 use Midtrans\Snap;
 use Midtrans\Notification;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\WebsiteSetting;
+use Illuminate\Support\Facades\Http;
 
 class OrderController extends Controller
 {
@@ -563,9 +565,41 @@ return redirect()
 
 public function downloadPdf(Order $order)
 {
+    $this->authorizeOrder($order);
+
     $order->load('items.product', 'user');
 
-    $pdf = Pdf::loadView('orders.download-pdf', compact('order'));
+    // 1. Ambil pengaturan website
+    $settings = WebsiteSetting::first();
+
+    // 2. Ambil URL logo dari Supabase
+    $logoUrl = $settings?->logo_url;
+    $logoBase64 = null;
+
+    if ($logoUrl) {
+        try {
+            // Unduh file gambar dari Supabase
+            $response = Http::timeout(5)->get($logoUrl);
+
+            if ($response->successful()) {
+                $type = $response->header('Content-Type') ?? 'image/png';
+                $base64 = base64_encode($response->body());
+                
+                // Format Data URI untuk DomPDF
+                $logoBase64 = 'data:' . $type . ';base64,' . $base64;
+            }
+        } catch (\Exception $e) {
+            // Jika koneksi ke Supabase gagal/timeout, biarkan $logoBase64 null
+            \Log::error('Gagal mengambil logo PDF dari Supabase: ' . $e->getMessage());
+        }
+    }
+
+    // 3. Render PDF
+    $pdf = Pdf::loadView('orders.download-pdf', [
+        'order'    => $order,
+        'settings' => $settings,
+        'logo'     => $logoBase64, // Kirim Base64 ke Blade
+    ]);
 
     return $pdf->download("Invoice-{$order->order_number}.pdf");
 }

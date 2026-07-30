@@ -124,11 +124,18 @@
 <div class="header">
 
     <div class="logo">
-    <img
-        src="{{ $logo }}"
-        alt="{{ $settings?->app_name ?? 'Fasel Aquarium' }}"
-        class="w-15 h-15 object-contain"
-    >
+    @if(!empty($logo))
+        <img
+            src="{{ $logo }}"
+            alt="{{ $settings?->app_name ?? 'Fasel Aquarium' }}"
+            style="width: 70px; height: 70px; object-fit: contain;"
+        >
+    @else
+        <div style="width:70px; height:70px; background:#2563eb; color:#ffffff;
+                    text-align:center; line-height:70px; font-weight:bold; font-size:22px;">
+            FA
+        </div>
+    @endif
 </div>
 
     <div class="company">
