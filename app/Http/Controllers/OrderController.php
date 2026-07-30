@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Midtrans\Snap;
 use Midtrans\Notification;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
