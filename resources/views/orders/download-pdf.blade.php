@@ -124,14 +124,12 @@
 <div class="header">
 
     <div class="logo">
-        {{-- Ganti dengan logo jika ada --}}
-        {{-- <img src="{{ public_path('images/logo.png') }}" width="70"> --}}
-
-        <div style="width:70px;height:70px;background:#2563eb;color:white;
-                    text-align:center;line-height:70px;font-weight:bold;font-size:22px;">
-            FA
-        </div>
-    </div>
+    <img
+        src="{{ $logo }}"
+        alt="{{ $settings?->app_name ?? 'Fasel Aquarium' }}"
+        class="w-15 h-15 object-contain"
+    >
+</div>
 
     <div class="company">
         <h2>Fasel Aquarium</h2>
