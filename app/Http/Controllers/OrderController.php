@@ -558,4 +558,15 @@ return redirect()
             abort(403, 'Anda tidak memiliki akses ke order ini.');
         }
     }
+
+    use Barryvdh\DomPDF\Facade\Pdf;
+
+public function downloadPdf(Order $order)
+{
+    $order->load('items.product', 'user');
+
+    $pdf = Pdf::loadView('orders.pdf', compact('order'));
+
+    return $pdf->download("Invoice-{$order->order_number}.pdf");
+}
 }
