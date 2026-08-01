@@ -49,14 +49,6 @@
                     <i class="fas fa-cog mr-2"></i> Pengaturan Umum
                 </button>
 
-                <button
-                    @click="activeTab = 'backup'"
-                    :class="activeTab === 'backup' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600 hover:text-gray-900'"
-                    class="py-4 px-1 font-medium transition"
-                    role="tab"
-                >
-                    <i class="fas fa-database mr-2"></i> Backup & Restore
-                </button>
             </nav>
         </div>
 
@@ -80,11 +72,6 @@
             {{-- General Tab --}}
             <div x-show="activeTab === 'general'">
                 @include('admin.settings.general-settings')
-            </div>
-
-            {{-- Backup Tab --}}
-            <div x-show="activeTab === 'backup'">
-                @include('admin.settings.backup')
             </div>
         </div>
     </div>
