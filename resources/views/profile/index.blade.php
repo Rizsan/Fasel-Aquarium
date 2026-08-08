@@ -377,22 +377,85 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
                             {{-- CURRENT PASSWORD --}}
-                            <div class="sm:col-span-2">
-                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                                    Password Saat Ini
-                                </label>
+                            {{-- CURRENT PASSWORD --}}
+<div class="sm:col-span-2">
+    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+        Password Saat Ini
+    </label>
 
-                                <input
-                                    :type="showCurrentPassword ? 'text' : 'password'"
-                                    name="current_password"
-                                    id="current_password"
-                                    autocomplete="new-password"
-                                    readonly
-                                    onfocus="this.removeAttribute('readonly');"
-                                    :required="newPassword.length > 0"
-                                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                            </div>
+    <div class="relative">
+        <input
+            :type="showCurrentPassword ? 'text' : 'password'"
+            name="current_password"
+            id="current_password"
+            autocomplete="current-password"
+            readonly
+            onfocus="this.removeAttribute('readonly');"
+            :required="newPassword.length > 0"
+            class="w-full border border-gray-200 rounded-xl pl-4 pr-11 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+
+        {{-- Tombol Toggle Ikon Mata --}}
+        <button
+            type="button"
+            @click="showCurrentPassword = !showCurrentPassword"
+            class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+            tabindex="-1"
+            aria-label="Tampilkan atau sembunyikan password"
+        >
+
+            {{-- Mata terbuka: password sedang tersembunyi --}}
+            <svg
+                x-show="!showCurrentPassword"
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
+            </svg>
+
+            {{-- Mata dicoret: password sedang terlihat --}}
+            <svg
+                x-show="showCurrentPassword"
+                x-cloak
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.007 10.007 0 013.122-.383c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21f-1.414-1.414L3 3l1.414-1.414"
+                />
+            </svg>
+
+        </button>
+    </div>
+
+    {{-- Pesan Error Validation --}}
+    @error('current_password')
+        <p class="text-xs text-red-500 mt-1.5 font-medium">
+            {{ $message }}
+        </p>
+    @enderror
+</div>
 
                             {{-- NEW PASSWORD --}}
                             <div>

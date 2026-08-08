@@ -406,58 +406,226 @@
                 </div>
 
                 {{-- PASSWORD --}}
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
 
-                    <h3 class="text-sm font-bold text-gray-900 mb-5">
-                        Keamanan Akun
-                    </h3>
+    <h3 class="text-sm font-bold text-gray-900 mb-5">
+        Keamanan Akun
+    </h3>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                                Password Saat Ini
-                            </label>
+        {{-- PASSWORD SAAT INI --}}
+        <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Password Saat Ini
+            </label>
 
-                            <div class="relative">
-                                <input
-                                    :type="showCurrentPassword ? 'text' : 'password'"
-                                    name="current_password"
-                                    id="current_password"
-                                    autocomplete="new-password"
-                                    readonly
-                                    onfocus="this.removeAttribute('readonly');"
-                                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
-                                >
-                            </div>
-                        </div>
+            <div class="relative">
+                <input
+                    :type="showCurrentPassword ? 'text' : 'password'"
+                    name="current_password"
+                    id="current_password"
+                    autocomplete="current-password"
+                    readonly
+                    onfocus="this.removeAttribute('readonly');"
+                    class="w-full border border-gray-200 rounded-xl pl-4 pr-11 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
 
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                                Password Baru
-                            </label>
+                {{-- Toggle Password Saat Ini --}}
+                <button
+                    type="button"
+                    @click="showCurrentPassword = !showCurrentPassword"
+                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                    tabindex="-1"
+                    aria-label="Tampilkan atau sembunyikan password saat ini"
+                >
 
-                            <input
-                                :type="showNewPassword ? 'text' : 'password'"
-                                name="password"
-                                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
-                            >
-                        </div>
+                    {{-- Mata terbuka --}}
+                    <svg
+                        x-show="!showCurrentPassword"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
 
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                                Konfirmasi Password Baru
-                            </label>
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                    </svg>
 
-                            <input
-                                :type="showNewPassword ? 'text' : 'password'"
-                                name="password_confirmation"
-                                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
-                            >
-                        </div>
+                    {{-- Mata dicoret --}}
+                    <svg
+                        x-show="showCurrentPassword"
+                        x-cloak
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.007 10.007 0 013.122-.383c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21f-1.414-1.414L3 3l1.414-1.414"
+                        />
+                    </svg>
 
-                    </div>
-                </div>
+                </button>
+            </div>
+        </div>
+
+
+        {{-- PASSWORD BARU --}}
+        <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Password Baru
+            </label>
+
+            <div class="relative">
+                <input
+                    :type="showNewPassword ? 'text' : 'password'"
+                    name="password"
+                    class="w-full border border-gray-200 rounded-xl pl-4 pr-11 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+
+                {{-- Toggle Password Baru --}}
+                <button
+                    type="button"
+                    @click="showNewPassword = !showNewPassword"
+                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                    tabindex="-1"
+                    aria-label="Tampilkan atau sembunyikan password baru"
+                >
+
+                    {{-- Mata terbuka --}}
+                    <svg
+                        x-show="!showNewPassword"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                    </svg>
+
+                    {{-- Mata dicoret --}}
+                    <svg
+                        x-show="showNewPassword"
+                        x-cloak
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.007 10.007 0 013.122-.383c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21f-1.414-1.414L3 3l1.414-1.414"
+                        />
+                    </svg>
+
+                </button>
+            </div>
+        </div>
+
+
+        {{-- KONFIRMASI PASSWORD --}}
+        <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Konfirmasi Password Baru
+            </label>
+
+            <div class="relative">
+                <input
+                    :type="showConfirmPassword ? 'text' : 'password'"
+                    name="password_confirmation"
+                    class="w-full border border-gray-200 rounded-xl pl-4 pr-11 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+
+                {{-- Toggle Konfirmasi Password --}}
+                <button
+                    type="button"
+                    @click="showConfirmPassword = !showConfirmPassword"
+                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                    tabindex="-1"
+                    aria-label="Tampilkan atau sembunyikan konfirmasi password"
+                >
+
+                    {{-- Mata terbuka --}}
+                    <svg
+                        x-show="!showConfirmPassword"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                    </svg>
+
+                    {{-- Mata dicoret --}}
+                    <svg
+                        x-show="showConfirmPassword"
+                        x-cloak
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.007 10.007 0 013.122-.383c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21f-1.414-1.414L3 3l1.414-1.414"
+                        />
+                    </svg>
+
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
 
                 {{-- SUBMIT --}}
                 <div class="flex items-center justify-between bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:px-6">
@@ -519,6 +687,7 @@ function adminProfile() {
         previewUrl: null,
         showCurrentPassword: false,
         showNewPassword: false,
+        showConfirmPassword: false,
         loading: false,
 
         handleSubmit(event) {
