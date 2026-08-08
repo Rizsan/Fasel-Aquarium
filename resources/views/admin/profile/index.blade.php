@@ -184,10 +184,11 @@
          UPDATE PROFILE FORM
          ============================================================ --}}
     <form
-        method="POST"
-        action="{{ route('admin.profile.update') }}"
-        enctype="multipart/form-data"
-        @submit.prevent="handleSubmit($event)"
+            method="POST"
+    action="{{ route('admin.profile.update') }}"
+    enctype="multipart/form-data"
+    x-data="adminProfile()"
+    @submit.prevent="handleSubmit($event)"
     >
         @csrf
         @method('PUT')
@@ -426,8 +427,6 @@
                     name="current_password"
                     id="current_password"
                     autocomplete="current-password"
-                    readonly
-                    onfocus="this.removeAttribute('readonly');"
                     class="w-full border border-gray-200 rounded-xl pl-4 pr-11 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
 

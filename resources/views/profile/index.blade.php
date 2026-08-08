@@ -389,9 +389,6 @@
             name="current_password"
             id="current_password"
             autocomplete="current-password"
-            readonly
-            onfocus="this.removeAttribute('readonly');"
-            :required="newPassword.length > 0"
             class="w-full border border-gray-200 rounded-xl pl-4 pr-11 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
 
