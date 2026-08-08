@@ -388,9 +388,13 @@
                     </div>
                 </div>
                 <div class="p-5">
-                    <div class="relative h-72 sm:h-80">
-                        <canvas id="predictionChart"></canvas>
-                    </div>
+                    <div
+    x-show="hasData"
+    x-cloak
+    class="relative w-full h-72 sm:h-80 min-h-[288px]"
+>
+    <canvas id="predictionChart"></canvas>
+</div>
                 </div>
             </div>
 
@@ -559,7 +563,6 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 function predictionApp() {
     return {
