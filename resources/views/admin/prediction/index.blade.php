@@ -276,8 +276,7 @@
     {{-- ================================================================
          MAIN CONTENT
     ================================================================ --}}
-    <template x-if="!loading && hasData">
-        <div class="space-y-6">
+    <div x-show="!loading && hasData" class="space-y-6">
 
             {{-- SUMMARY CARDS --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
@@ -559,7 +558,7 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
 <script>
 function predictionApp() {
     return {
@@ -793,22 +792,28 @@ function predictionApp() {
                 }
 
                 this.result = json.data;
-                this.hasData = this.result.table && this.result.table.length > 0;
+this.hasData = this.result.table && this.result.table.length > 0;
 
-                if (this.hasData) {
-                    await this.$nextTick();
-                    // Memberikan sedikit delay agar ukuran kanvas ter-render di DOM dengan sempurna
-                    setTimeout(() => {
-                        this.renderChart(json.data.chart);
-                    }, 100);
-                    
-                    // Show success dengan info bobot
-                    const weightsUsed = this.result.summary.weights_display || 'auto-generated';
-                    this.showFlash(
-                        'success',
-                        `Analisis dengan window=${this.result.summary.window_size}, bobot=[${weightsUsed}]`
-                    );
-                } else {
+if (this.hasData) {
+
+    await this.$nextTick();
+
+    this.renderChart(this.result.chart);
+
+    const weightsUsed =
+        this.result.summary.weights_display || 'auto-generated';
+
+    this.showFlash(
+        'success',
+        `Analisis dengan window=${this.result.summary.window_size}, bobot=[${weightsUsed}]`
+    );
+
+} else {
+    this.showFlash(
+        'error',
+        'Tidak ada data pada rentang tanggal tersebut.'
+    );
+} else {
                     this.showFlash('error', 'Tidak ada data pada rentang tanggal tersebut.');
                 }
             } catch (err) {
