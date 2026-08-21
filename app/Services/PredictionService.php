@@ -16,10 +16,10 @@ use Carbon\CarbonPeriod;
  * Service untuk prediction logic dengan dynamic WMA.
  * 
  * Key Changes:
- * - calculateWMA() sekarang dinamis (tidak hardcoded weight_1,2,3)
- * - Aman dari undefined array key
- * - Tidak ada division by zero
- * - Robust untuk window apapun (2-12)
+ * - calculateWMA() menggunakan bobot dan window dinamis.
+ * - getPredictedProducts() menyelaraskan seluruh periode historis
+ *   agar perhitungan WMA produk konsisten dengan data revenue.
+ * - Aman dari undefined array key dan division by zero.
  */
 class PredictionService
 {
@@ -31,40 +31,45 @@ class PredictionService
     public function getPredictionData(PredictionFilterDTO $filter): array
     {
         logger()->info('Filter', [
-    'period' => $filter->period,
-    'start'  => $filter->startDate->toDateString(),
-    'end'    => $filter->endDate->toDateString(),
-    'window' => $filter->window,
-    'weights'=> $filter->weights,
-]);
+            'period'  => $filter->period,
+            'start'   => $filter->startDate->toDateString(),
+            'end'     => $filter->endDate->toDateString(),
+            'window'  => $filter->window,
+            'weights' => $filter->weights,
+        ]);
+
         // 1. Fetch revenue data per period
         $revenueData = $this->fetchRevenueByPeriod($filter);
 
-        // 2. Calculate SMA (unchanged)
+        // 2. Calculate SMA
         $smaData = $this->calculateSMA($revenueData, $filter->window);
         logger()->info('SMA', $smaData->toArray());
 
         // 3. Calculate WMA dengan dynamic weights
         $wmaData = $this->calculateWMA($revenueData, $filter->window, $filter->weights);
         logger()->info('WMA', $wmaData->toArray());
-        // 4. Build table (unchanged)
+
+        // 4. Build table
         $tableData = $this->buildTableData($revenueData, $smaData, $wmaData);
         logger()->info('Table Data', [
-    'count' => $tableData->count(),
-    'rows'  => $tableData->toArray(),
-]);
-        // 5. Build summary (updated untuk include weights info)
+            'count' => $tableData->count(),
+            'rows'  => $tableData->toArray(),
+        ]);
+
+        // 5. Build summary
         $summary = $this->buildSummary($revenueData, $smaData, $wmaData, $filter);
 
-        // 6. Get predicted products dengan dynamic weights
+        // 6. Get predicted products dengan WMA
         $products = $this->getPredictedProducts($filter, $wmaData);
         logger()->info('Products', [
-    'count' => $products->count(),
-    'rows'  => $products->toArray(),
-]);
-        // 7. Build chart (unchanged)
+            'count' => $products->count(),
+            'rows'  => $products->toArray(),
+        ]);
+
+        // 7. Build chart
         $chartData = $this->buildChartData($tableData);
         logger()->info('Chart Data', $chartData);
+
         return [
             'table'    => $tableData,
             'summary'  => $summary,
@@ -97,10 +102,11 @@ class PredictionService
             ->groupByRaw("DATE_FORMAT(created_at, '{$groupFormat}')")
             ->orderByRaw("DATE_FORMAT(created_at, '{$groupFormat}')")
             ->get();
-            logger()->info('Revenue Query Result', [
-    'count' => $rows->count(),
-    'rows'  => $rows->toArray(),
-]);
+
+        logger()->info('Revenue Query Result', [
+            'count' => $rows->count(),
+            'rows'  => $rows->toArray(),
+        ]);
 
         return $this->fillMissingPeriods($rows, $filter, $dateFormat);
     }
@@ -132,37 +138,29 @@ class PredictionService
 
         foreach ($period as $date) {
             $key = $date->format($this->carbonFormat($filter->period));
-            logger()->info([
-    'date' => $date->toDateString(),
-    'generated_key' => $key,
-    'exists' => $existing->has($key),
-]);
 
             if ($existing->has($key)) {
                 $row = $existing->get($key);
                 $filled->push([
                     'period_key'    => $key,
-                    'label' => $filter->period === 'weekly'
-    ? $date->translatedFormat('F') . ' Minggu ' . ceil($date->day / 7)
-    : $date->translatedFormat($dateFormat),
+                    'label'         => $filter->period === 'weekly'
+                        ? $date->translatedFormat('F') . ' Minggu ' . ceil($date->day / 7)
+                        : $date->translatedFormat($dateFormat),
                     'total_revenue' => (float) $row->total_revenue,
                     'order_count'   => (int) $row->order_count,
                 ]);
             } else {
                 $filled->push([
                     'period_key'    => $key,
-                    'label' => $filter->period === 'weekly'
-    ? $date->translatedFormat('F') . ' Minggu ' . ceil($date->day / 7)
-    : $date->translatedFormat($dateFormat),
+                    'label'         => $filter->period === 'weekly'
+                        ? $date->translatedFormat('F') . ' Minggu ' . ceil($date->day / 7)
+                        : $date->translatedFormat($dateFormat),
                     'total_revenue' => 0.0,
                     'order_count'   => 0,
                 ]);
             }
         }
-logger()->info('Filled Periods', [
-    'count' => $filled->count(),
-    'data'  => $filled->toArray(),
-]);
+
         return $filled;
     }
 
@@ -170,11 +168,6 @@ logger()->info('Filled Periods', [
      * =====================================================================
      * SIMPLE MOVING AVERAGE (SMA)
      * =====================================================================
-     * 
-     * Formula: SMA = Σ(data) / window
-     * 
-     * Unchanged dari sebelumnya.
-     * Safe: returns null jika data < window.
      */
     public function calculateSMA(Collection $data, int $window): Collection
     {
@@ -199,27 +192,12 @@ logger()->info('Filled Periods', [
      * =====================================================================
      * WEIGHTED MOVING AVERAGE (WMA) — DYNAMIC
      * =====================================================================
-     * 
-     * Formula: WMA = Σ(data × bobot) / Σ(bobot)
-     * 
-     * CHANGES:
-     * ✅ Dynamic weights (bukan hardcoded [1,2,3])
-     * ✅ Weights array selalu match dengan window size
-     * ✅ Safe dari undefined array key
-     * ✅ Safe dari division by zero
-     * ✅ Type-safe dengan strict checks
-     * 
-     * @param Collection $data Revenue data collection
-     * @param int $window Window size (2-12)
-     * @param array<int, int> $weights Dynamic weights array (count = window)
-     * @return Collection WMA values (null jika insufficient data)
      */
     public function calculateWMA(
         Collection $data,
         int $window,
         array $weights
     ): Collection {
-        // Safety: weights count must equal window
         if (count($weights) !== $window) {
             throw new \LogicException(
                 "Weights count (" . count($weights) . ") must equal window ({$window})"
@@ -230,35 +208,25 @@ logger()->info('Filled Periods', [
         $result = collect();
         $weightSum = array_sum($weights);
 
-        // Safety: weights sum must be > 0
         if ($weightSum <= 0) {
             throw new \LogicException("Sum of weights must be > 0");
         }
 
         foreach ($values as $i => $value) {
-            // Insufficient data untuk window ini
             if ($i < $window - 1) {
                 $result->push(null);
                 continue;
             }
 
-            // SLICE data sesuai window size
             $slice = $values->slice($i - $window + 1, $window);
-
-            // Calculate weighted sum
             $weighted = 0.0;
             $sliceIndex = 0;
 
             foreach ($slice as $sliceValue) {
-                // ✅ SAFE: sliceIndex selalu < count($weights) karena:
-                //    - slice count = window (selalu dibuat dengan $window)
-                //    - weights count = window (sudah di-validate)
-                //    - loop runs exactly window times
                 $weighted += (float) $sliceValue * $weights[$sliceIndex];
                 $sliceIndex++;
             }
 
-            // Calculate WMA
             $wma = $weighted / $weightSum;
             $result->push(round($wma, 2));
         }
@@ -272,52 +240,34 @@ logger()->info('Filled Periods', [
      * =====================================================================
      */
     private function buildTableData(
-    Collection $revenue,
-    Collection $sma,
-    Collection $wma
-): Collection {
-    return $revenue->values()->map(function ($row, $i) use ($sma, $wma, $revenue) {
+        Collection $revenue,
+        Collection $sma,
+        Collection $wma
+    ): Collection {
+        return $revenue->values()->map(function ($row, $i) use ($sma, $wma) {
+            $smaVal = $sma->get($i);
+            $wmaVal = $wma->get($i);
 
-        $smaVal = $sma->get($i);
-        $wmaVal = $wma->get($i);
+            $prediction = null;
+            if ($i > 0) {
+                $prediction = $wma->get($i - 1);
+            }
 
-        /**
-         * ============================================================
-         * FIX PREDICTION SHIFT
-         * ============================================================
-         *
-         * WMA pada periode sekarang digunakan untuk
-         * memprediksi periode berikutnya.
-         *
-         * Jadi:
-         * - Mei WMA 240k -> prediksi Juni
-         * - Juni WMA 120k -> prediksi Juli
-         */
-
-        $prediction = null;
-
-        // Ambil WMA dari periode sebelumnya
-        if ($i > 0) {
-            $prediction = $wma->get($i - 1);
-        }
-
-        return [
-            'label'      => $row['label'],
-            'actual'     => $row['total_revenue'],
-            'orders'     => $row['order_count'],
-            'sma'        => $smaVal,
-            'wma'        => $wmaVal,
-            'prediction' => $prediction,
-        ];
-    });
-}
+            return [
+                'label'      => $row['label'],
+                'actual'     => $row['total_revenue'],
+                'orders'     => $row['order_count'],
+                'sma'        => $smaVal,
+                'wma'        => $wmaVal,
+                'prediction' => $prediction,
+            ];
+        });
+    }
 
     /**
      * =====================================================================
      * BUILD SUMMARY
      * =====================================================================
-     * 
-     * Updated untuk include weights info.
      */
     private function buildSummary(
         Collection $revenue,
@@ -336,34 +286,28 @@ logger()->info('Filled Periods', [
             ->last() ?? 0;
 
         return [
-            'total_revenue'      => $totalRevenue,
-            'avg_revenue'        => round($avgRevenue, 2),
-            'next_prediction'    => round($lastWma, 2),
-            'data_points'        => $revenue->count(),
-            'prediction_method'  => 'Weighted Moving Average (WMA)',
-            'window_size'        => $filter->window,
-            'weights'            => $filter->weights, // Include weights untuk info
-            'weights_display'    => $filter->getWeightsAsString(),
+            'total_revenue'     => $totalRevenue,
+            'avg_revenue'       => round($avgRevenue, 2),
+            'next_prediction'   => round($lastWma, 2),
+            'data_points'       => $revenue->count(),
+            'prediction_method' => 'Weighted Moving Average (WMA)',
+            'window_size'       => $filter->window,
+            'weights'           => $filter->weights,
+            'weights_display'   => $filter->getWeightsAsString(),
         ];
     }
 
     /**
      * =====================================================================
-     * GET PREDICTED PRODUCTS (DYNAMIC WEIGHTS)
+     * GET PREDICTED PRODUCTS
      * =====================================================================
-     * 
-     * Predict produk yang kemungkinan laku di masa depan.
-     * 
-     * CHANGES:
-     * ✅ Menggunakan dynamic weights dari filter
-     * ✅ Safe dari undefined array key (sudah di-validate di WMA)
-     * ✅ Proper handling insufficient data
      */
     private function getPredictedProducts(
         PredictionFilterDTO $filter,
         Collection $wmaRevenueData
     ): Collection {
         $groupFormat = $this->getGroupFormat($filter->period);
+        $allPeriods = $this->generatePeriods($filter);
 
         // 1. Fetch product history
         $productHistory = OrderItem::query()
@@ -375,7 +319,7 @@ logger()->info('Filled Periods', [
                 $filter->endDate->endOfDay(),
             ])
             ->selectRaw("
-                products.id,
+                products.id as product_id,
                 products.name as product_name,
                 DATE_FORMAT(orders.created_at, '{$groupFormat}') AS period_key,
                 SUM(order_items.quantity) AS qty_per_period
@@ -393,53 +337,54 @@ logger()->info('Filled Periods', [
             return collect();
         }
 
-        // 2. Group by product & calculate WMA per product dengan dynamic weights
+        // 2. Group by product & calculate WMA per product
         $products = $productHistory
-            ->groupBy('product_name')
-            ->map(function ($items) use ($filter) {
-                $quantities = $items->pluck('qty_per_period')->values();
+            ->groupBy('product_id')
+            ->map(function ($items, $productId) use ($filter, $allPeriods) {
+                $productName = $items->first()->product_name;
 
-                // Edge case: insufficient data
-                if ($quantities->isEmpty()) {
-                    return null;
-                }
-
-                // ✅ SAFE: calculateWMA sekarang robust dengan dynamic weights
                 try {
-                    $qtyData = collect($items->map(fn($item) => [
-                        'total_revenue' => $item->qty_per_period,
-                    ])->values());
+                    $periodMap = $items->keyBy('period_key');
 
-                    // Gunakan window minimal jika data < filter->window
-                    $effectiveWindow = min($filter->window, $quantities->count());
+                    // Petakan seluruh urutan periode agar sinkron
+                    $qtyData = collect();
+                    foreach ($allPeriods as $periodKey) {
+                        $qty = $periodMap->has($periodKey)
+                            ? (float) $periodMap->get($periodKey)->qty_per_period
+                            : 0.0;
 
-                    // Generate weights untuk effective window
-                    $effectiveWeights = array_slice($filter->weights, 0, $effectiveWindow);
-                    if (count($effectiveWeights) < $effectiveWindow) {
-                        // Auto-generate jika perlu
-                        $effectiveWeights = range(1, $effectiveWindow);
+                        $qtyData->push([
+                            'total_revenue' => $qty,
+                        ]);
                     }
 
-                    $wmaQty = $this->calculateWMA($qtyData, $effectiveWindow, $effectiveWeights);
+                    // Hitung WMA menggunakan window & weights standar dari filter
+                    $wmaQty = $this->calculateWMA($qtyData, $filter->window, $filter->weights);
 
                     $lastWma = $wmaQty
                         ->filter(fn($v) => $v !== null)
                         ->last() ?? 0;
 
-                    $totalQty = $quantities->sum();
+                    $totalQty = $items->sum('qty_per_period');
 
                     return [
-                        'product_name'  => $items->first()->product_name,
+                        'product_name'  => $productName,
                         'total_qty'     => (int) $totalQty,
                         'wma'           => round($lastWma, 2),
                         'predicted_qty' => (int) ceil($lastWma),
                     ];
+
                 } catch (\Exception $e) {
-                    // Log error tapi jangan stop process
+                    logger()->error('Product WMA Error', [
+                        'product_id'   => $productId,
+                        'product_name' => $productName,
+                        'error'        => $e->getMessage(),
+                    ]);
+
                     return null;
                 }
             })
-            ->filter(fn($item) => $item !== null) // Remove failed items
+            ->filter(fn($item) => $item !== null)
             ->sortByDesc('wma')
             ->values();
 
@@ -447,30 +392,78 @@ logger()->info('Filled Periods', [
             return collect();
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Ranking
+        |--------------------------------------------------------------------------
+        */
         return $products
-    ->take(10)
-    ->values()
-    ->map(function ($item, $index) {
+            ->take(10)
+            ->values()
+            ->map(function ($item, $index) {
+                $rank = $index + 1;
 
-        $rank = $index + 1;
+                if ($rank <= 3) {
+                    $badge = 'high_potential';
+                } elseif ($rank <= 7) {
+                    $badge = 'stable';
+                } else {
+                    $badge = 'low';
+                }
 
-        if ($rank <= 3) {
-            $badge = 'high_potential';
-        } elseif ($rank <= 7) {
-            $badge = 'stable';
+                return [
+                    'rank'          => $rank,
+                    'product_name'  => $item['product_name'],
+                    'total_qty'     => $item['total_qty'],
+                    'wma'           => $item['wma'],
+                    'predicted_qty' => $item['predicted_qty'],
+                    'badge'         => $badge,
+                ];
+            });
+    }
+
+    /**
+     * =====================================================================
+     * GENERATE PERIODS
+     * =====================================================================
+     */
+    private function generatePeriods(PredictionFilterDTO $filter): array
+    {
+        $periods = [];
+
+        if ($filter->period === 'daily') {
+            $period = CarbonPeriod::create(
+                $filter->startDate->copy()->startOfDay(),
+                '1 day',
+                $filter->endDate->copy()->startOfDay()
+            );
+
+            foreach ($period as $date) {
+                $periods[] = $date->format('Y-m-d');
+            }
+        } elseif ($filter->period === 'weekly') {
+            $period = CarbonPeriod::create(
+                $filter->startDate->copy()->startOfWeek(),
+                '1 week',
+                $filter->endDate->copy()->startOfWeek()
+            );
+
+            foreach ($period as $date) {
+                $periods[] = $date->format('o-\WW');
+            }
         } else {
-            $badge = 'low';
+            $period = CarbonPeriod::create(
+                $filter->startDate->copy()->startOfMonth(),
+                '1 month',
+                $filter->endDate->copy()->startOfMonth()
+            );
+
+            foreach ($period as $date) {
+                $periods[] = $date->format('Y-m');
+            }
         }
 
-        return [
-            'rank'          => $rank,
-            'product_name'  => $item['product_name'],
-            'total_qty'     => $item['total_qty'],
-            'wma'           => $item['wma'],
-            'predicted_qty' => $item['predicted_qty'],
-            'badge'         => $badge,
-        ];
-    });
+        return $periods;
     }
 
     /**
