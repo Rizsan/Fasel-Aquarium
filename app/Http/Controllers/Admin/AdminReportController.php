@@ -59,9 +59,9 @@ class AdminReportController extends Controller
         $allOrders = $query->clone()->get();
 
         // --- Statistik Ringkasan ---
-        $totalRevenue      = $allOrders->sum('total_price');
-        $totalOrders       = $allOrders->count();
-        $totalItemsSold    = $allOrders->sum(fn($o) => $o->items->sum('quantity'));
+        $totalRevenue       = $allOrders->sum('total_price');
+        $totalOrders        = $allOrders->count();
+        $totalItemsSold     = $allOrders->sum(fn($o) => $o->items->sum('quantity'));
         $averageTransaction = $totalOrders > 0
             ? $totalRevenue / $totalOrders
             : 0;
@@ -75,7 +75,7 @@ class AdminReportController extends Controller
         // --- Chart Data ---
         $chartData = $this->buildChartData($allOrders, $month, $year, $dateStart, $dateEnd);
 
-        // --- Top Selling Products ---
+        // --- Produk Terlaris Berdasarkan Jumlah Terjual ---
         $topProducts = $this->getTopProducts($allOrders);
 
         // --- Payment Method Stats ---
@@ -140,13 +140,13 @@ class AdminReportController extends Controller
                   ->whereYear('created_at', $year);
         }
 
-        $orders            = $query->orderByDesc('created_at')->get();
-        $totalRevenue      = $orders->sum('total_price');
-        $totalOrders       = $orders->count();
-        $totalItemsSold    = $orders->sum(fn($o) => $o->items->sum('quantity'));
+        $orders             = $query->orderByDesc('created_at')->get();
+        $totalRevenue       = $orders->sum('total_price');
+        $totalOrders        = $orders->count();
+        $totalItemsSold     = $orders->sum(fn($o) => $o->items->sum('quantity'));
         $averageTransaction = $totalOrders > 0 ? $totalRevenue / $totalOrders : 0;
-        $topProducts       = $this->getTopProducts($orders);
-        $paymentStats      = $this->getPaymentStats($orders);
+        $topProducts        = $this->getTopProducts($orders);
+        $paymentStats       = $this->getPaymentStats($orders);
 
         $periodLabel = $dateStart && $dateEnd
             ? Carbon::parse($dateStart)->format('d M Y') . ' - ' . Carbon::parse($dateEnd)->format('d M Y')
@@ -169,6 +169,8 @@ class AdminReportController extends Controller
             'periodLabel',
             'month',
             'year',
+            'dateStart',
+            'dateEnd',
         ))->setPaper('a4', 'landscape');
 
         return $pdf->download($filename);
@@ -207,9 +209,9 @@ class AdminReportController extends Controller
 
         $orders  = $query->orderByDesc('created_at')->get();
         $summary = [
-            'total_revenue'       => $orders->sum('total_price'),
-            'total_orders'        => $orders->count(),
-            'total_items_sold'    => $orders->sum(fn($o) => $o->items->sum('quantity')),
+            'total_revenue'    => $orders->sum('total_price'),
+            'total_orders'     => $orders->count(),
+            'total_items_sold' => $orders->sum(fn($o) => $o->items->sum('quantity')),
         ];
 
         $filename = 'laporan-penjualan-' . Carbon::create($year, $month)->format('F-Y') . '.xlsx';
@@ -287,6 +289,10 @@ class AdminReportController extends Controller
         return compact('labels', 'data');
     }
 
+    /**
+     * Produk terlaris berdasarkan jumlah/unit yang terjual.
+     * Bukan berdasarkan total pendapatan.
+     */
     private function getTopProducts($orders): \Illuminate\Support\Collection
     {
         return $orders
@@ -294,13 +300,14 @@ class AdminReportController extends Controller
             ->groupBy('product_id')
             ->map(function ($items) {
                 $product = $items->first()->product;
+
                 return [
                     'name'     => $product?->name ?? 'Produk Dihapus',
-                    'quantity' => $items->sum('quantity'),
-                    'revenue'  => $items->sum('subtotal'),
+                    'quantity' => (int) $items->sum('quantity'),
+                    'revenue'  => (float) $items->sum('subtotal'),
                 ];
             })
-            ->sortByDesc('revenue')
+            ->sortByDesc('quantity')
             ->take(5)
             ->values();
     }
