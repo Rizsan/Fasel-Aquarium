@@ -5,6 +5,7 @@ namespace App\Services;
 use App\DTOs\PredictionFilterDTO;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use Illuminate\Support\Collection;
 use Carbon\CarbonPeriod;
 
@@ -16,9 +17,9 @@ use Carbon\CarbonPeriod;
  * Service untuk prediction logic dengan dynamic WMA.
  * 
  * Key Changes:
- * - calculateWMA() menggunakan bobot dan window dinamis.
- * - getPredictedProducts() menyelaraskan seluruh periode historis
- *   agar perhitungan WMA produk konsisten dengan data revenue.
+ * - Refactored getProductPredictions() sebagai sumber utama prediksi produk.
+ * - getPredictedProducts() menjadi wrapper untuk kebutuhan Top 10 produk.
+ * - Penambahan histori periode per produk (buildProductPeriodData & formatProductPeriodLabel).
  * - Aman dari undefined array key dan division by zero.
  */
 class PredictionService
@@ -299,58 +300,94 @@ class PredictionService
 
     /**
      * =====================================================================
-     * GET PREDICTED PRODUCTS
+     * GET PRODUCT PREDICTIONS
      * =====================================================================
+     *
+     * Sumber utama perhitungan prediksi produk.
+     *
+     * Method ini dipakai oleh:
+     * - Produk Diprediksi Laku
+     * - Halaman Prediksi Penjualan
+     *
+     * Dengan demikian hasil WMA dan prediksi selalu sama.
      */
-    private function getPredictedProducts(
-        PredictionFilterDTO $filter,
-        Collection $wmaRevenueData
+    public function getProductPredictions(
+        PredictionFilterDTO $filter
     ): Collection {
         $groupFormat = $this->getGroupFormat($filter->period);
         $allPeriods = $this->generatePeriods($filter);
 
-        // 1. Fetch product history
+        // ================================================================
+        // 1. Ambil seluruh produk yang mempunyai histori penjualan
+        // ================================================================
         $productHistory = OrderItem::query()
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->whereIn('orders.status', ['paid', 'processing', 'shipped', 'completed'])
+            ->whereIn('orders.status', [
+                'paid',
+                'processing',
+                'shipped',
+                'completed'
+            ])
             ->whereBetween('orders.created_at', [
-                $filter->startDate->startOfDay(),
-                $filter->endDate->endOfDay(),
+                $filter->startDate->copy()->startOfDay(),
+                $filter->endDate->copy()->endOfDay(),
             ])
             ->selectRaw("
                 products.id as product_id,
                 products.name as product_name,
-                DATE_FORMAT(orders.created_at, '{$groupFormat}') AS period_key,
+                DATE_FORMAT(
+                    orders.created_at,
+                    '{$groupFormat}'
+                ) AS period_key,
                 SUM(order_items.quantity) AS qty_per_period
             ")
             ->groupByRaw("
                 products.id,
                 products.name,
-                DATE_FORMAT(orders.created_at, '{$groupFormat}')
+                DATE_FORMAT(
+                    orders.created_at,
+                    '{$groupFormat}'
+                )
             ")
             ->orderBy('products.id')
-            ->orderByRaw("DATE_FORMAT(orders.created_at, '{$groupFormat}')")
+            ->orderByRaw("
+                DATE_FORMAT(
+                    orders.created_at,
+                    '{$groupFormat}'
+                )
+            ")
             ->get();
 
         if ($productHistory->isEmpty()) {
             return collect();
         }
 
-        // 2. Group by product & calculate WMA per product
+        // ================================================================
+        // 2. Hitung WMA untuk setiap produk
+        // ================================================================
         $products = $productHistory
             ->groupBy('product_id')
-            ->map(function ($items, $productId) use ($filter, $allPeriods) {
+            ->map(function ($items, $productId) use (
+                $filter,
+                $allPeriods
+            ) {
                 $productName = $items->first()->product_name;
 
                 try {
                     $periodMap = $items->keyBy('period_key');
 
-                    // Petakan seluruh urutan periode agar sinkron
+                    // ----------------------------------------------------
+                    // Isi seluruh periode.
+                    // Jika tidak ada penjualan -> 0
+                    // ----------------------------------------------------
                     $qtyData = collect();
+
                     foreach ($allPeriods as $periodKey) {
                         $qty = $periodMap->has($periodKey)
-                            ? (float) $periodMap->get($periodKey)->qty_per_period
+                            ? (float) $periodMap
+                                ->get($periodKey)
+                                ->qty_per_period
                             : 0.0;
 
                         $qtyData->push([
@@ -358,20 +395,44 @@ class PredictionService
                         ]);
                     }
 
-                    // Hitung WMA menggunakan window & weights standar dari filter
-                    $wmaQty = $this->calculateWMA($qtyData, $filter->window, $filter->weights);
+                    // ----------------------------------------------------
+                    // WMA
+                    // ----------------------------------------------------
+                    $wmaData = $this->calculateWMA(
+                        $qtyData,
+                        $filter->window,
+                        $filter->weights
+                    );
 
-                    $lastWma = $wmaQty
-                        ->filter(fn($v) => $v !== null)
+                    $lastWma = $wmaData
+                        ->filter(fn ($value) => $value !== null)
                         ->last() ?? 0;
 
+                    // ----------------------------------------------------
+                    // Total penjualan pada periode analisis
+                    // ----------------------------------------------------
                     $totalQty = $items->sum('qty_per_period');
 
+                    // ----------------------------------------------------
+                    // Produk
+                    // ----------------------------------------------------
+                    $product = Product::find($productId);
+
                     return [
+                        'product_id'    => (int) $productId,
                         'product_name'  => $productName,
                         'total_qty'     => (int) $totalQty,
                         'wma'           => round($lastWma, 2),
                         'predicted_qty' => (int) ceil($lastWma),
+                        'stock'         => $product
+                            ? (int) $product->stock
+                            : 0,
+                        'periods'       => $this->buildProductPeriodData(
+                            $qtyData,
+                            $allPeriods,
+                            $filter,
+                            $wmaData
+                        ),
                     ];
 
                 } catch (\Exception $e) {
@@ -384,19 +445,114 @@ class PredictionService
                     return null;
                 }
             })
-            ->filter(fn($item) => $item !== null)
+            ->filter(fn ($item) => $item !== null)
             ->sortByDesc('wma')
             ->values();
+
+        return $products;
+    }
+
+    /**
+     * =====================================================================
+     * BUILD PRODUCT PERIOD DATA
+     * =====================================================================
+     */
+    private function buildProductPeriodData(
+        Collection $qtyData,
+        array $allPeriods,
+        PredictionFilterDTO $filter,
+        Collection $wmaData
+    ): array {
+        $result = [];
+
+        foreach ($qtyData as $index => $row) {
+            $actual = (float) $row['total_revenue'];
+            $wma = $wmaData->get($index);
+
+            /*
+             * Sama seperti buildTableData() pada prediksi pendapatan:
+             *
+             * prediksi periode sekarang =
+             * WMA periode sebelumnya
+             */
+            $prediction = null;
+
+            if ($index > 0) {
+                $prediction = $wmaData->get($index - 1);
+            }
+
+            $periodKey = $allPeriods[$index] ?? null;
+
+            $result[] = [
+                'period_key' => $periodKey,
+                'label'      => $this->formatProductPeriodLabel(
+                    $periodKey,
+                    $filter->period
+                ),
+                'actual'     => (int) $actual,
+                'wma'        => $wma !== null
+                    ? round($wma, 2)
+                    : null,
+                'prediction' => $prediction !== null
+                    ? round($prediction, 2)
+                    : null,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * =====================================================================
+     * FORMAT PRODUCT PERIOD LABEL
+     * =====================================================================
+     */
+    private function formatProductPeriodLabel(
+        ?string $periodKey,
+        string $period
+    ): string {
+        if (!$periodKey) {
+            return '-';
+        }
+
+        try {
+            if ($period === 'daily') {
+                return \Carbon\Carbon::createFromFormat(
+                    'Y-m-d',
+                    $periodKey
+                )->translatedFormat('d M Y');
+            }
+
+            if ($period === 'monthly') {
+                return \Carbon\Carbon::createFromFormat(
+                    'Y-m',
+                    $periodKey
+                )->translatedFormat('F Y');
+            }
+
+            // weekly
+            return $periodKey;
+
+        } catch (\Exception $e) {
+            return $periodKey;
+        }
+    }
+
+    /**
+     * =====================================================================
+     * GET PREDICTED PRODUCTS
+     * =====================================================================
+     */
+    private function getPredictedProducts(
+        PredictionFilterDTO $filter,
+        Collection $wmaRevenueData
+    ): Collection {
+        $products = $this->getProductPredictions($filter);
 
         if ($products->isEmpty()) {
             return collect();
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Ranking
-        |--------------------------------------------------------------------------
-        */
         return $products
             ->take(10)
             ->values()
@@ -413,10 +569,12 @@ class PredictionService
 
                 return [
                     'rank'          => $rank,
+                    'product_id'    => $item['product_id'],
                     'product_name'  => $item['product_name'],
                     'total_qty'     => $item['total_qty'],
                     'wma'           => $item['wma'],
                     'predicted_qty' => $item['predicted_qty'],
+                    'stock'         => $item['stock'],
                     'badge'         => $badge,
                 ];
             });

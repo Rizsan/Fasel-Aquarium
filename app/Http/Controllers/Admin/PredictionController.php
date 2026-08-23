@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Product;
 use App\DTOs\PredictionFilterDTO;
 use App\Http\Controllers\Controller;
 use App\Services\PredictionService;
@@ -139,4 +140,198 @@ class PredictionController extends Controller
 
         return true;
     }
+    /**
+ * =====================================================================
+ * HALAMAN PREDIKSI PENJUALAN
+ * =====================================================================
+ */
+public function sales()
+{
+    $defaults = [
+        'period'     => 'monthly',
+        'start_date' => now()
+            ->subMonths(6)
+            ->startOfMonth()
+            ->format('Y-m-d'),
+
+        'end_date'   => now()
+            ->endOfMonth()
+            ->format('Y-m-d'),
+
+        'window'     => 3,
+        'weights'    => '1,2,3',
+    ];
+
+    return view('admin.prediction.sales', [
+        'defaults' => $defaults,
+    ]);
+}
+/**
+ * =====================================================================
+ * DATA PREDIKSI PENJUALAN
+ * =====================================================================
+ */
+public function salesData(Request $request): JsonResponse
+{
+    $window = (int) ($request->input('window') ?? 3);
+
+    $window = max(2, min($window, 12));
+
+    $validated = $request->validate([
+        'period' => [
+            'required',
+            'in:daily,weekly,monthly'
+        ],
+
+        'start_date' => [
+            'required',
+            'date'
+        ],
+
+        'end_date' => [
+            'required',
+            'date',
+            'after_or_equal:start_date'
+        ],
+
+        'window' => [
+            'nullable',
+            'integer',
+            'min:2',
+            'max:12'
+        ],
+
+        'weights' => [
+            'nullable',
+            'string',
+
+            function ($attribute, $value, $fail) use ($window) {
+
+                if (!$this->validateWeightsFormat(
+                    $value,
+                    $window
+                )) {
+                    $fail(
+                        "Weights harus {$window} angka yang dipisahkan koma."
+                    );
+                }
+            }
+        ],
+    ]);
+
+    try {
+
+        $filter = PredictionFilterDTO::fromRequest(
+            array_merge(
+                $validated,
+                ['window' => $window]
+            )
+        );
+
+        $products = $this->predictionService
+            ->getProductPredictions($filter);
+
+        return response()->json([
+            'success' => true,
+
+            'data' => [
+                'products' => $products,
+
+                'summary' => [
+                    'product_count' => $products->count(),
+
+                    'total_prediction' => $products->sum(
+                        'predicted_qty'
+                    ),
+
+                    'window' => $filter->window,
+
+                    'weights' => $filter->weights,
+
+                    'weights_display' =>
+                        $filter->getWeightsAsString(),
+                ],
+            ],
+        ]);
+
+    } catch (\LogicException $e) {
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation error: ' . $e->getMessage(),
+        ], 422);
+
+    } catch (\Exception $e) {
+
+        logger()->error(
+            'Sales Prediction Error',
+            [
+                'error' => $e->getMessage(),
+            ]
+        );
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage(),
+        ], 500);
+    }
+}
+/**
+ * =====================================================================
+ * UPDATE STOCK
+ * =====================================================================
+ */
+public function updateStock(
+    Request $request,
+    Product $product
+): JsonResponse {
+
+    $validated = $request->validate([
+        'action' => [
+            'required',
+            'in:increase,decrease'
+        ],
+
+        'amount' => [
+            'required',
+            'integer',
+            'min:1',
+            'max:1000'
+        ],
+    ]);
+
+    $amount = (int) $validated['amount'];
+
+    if ($validated['action'] === 'increase') {
+
+        $product->increment('stock', $amount);
+
+    } else {
+
+        if ($product->stock < $amount) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Stok tidak mencukupi untuk dikurangi.',
+            ], 422);
+        }
+
+        $product->decrement('stock', $amount);
+    }
+
+    $product->refresh();
+
+    return response()->json([
+        'success' => true,
+
+        'message' => $validated['action'] === 'increase'
+            ? "Stok {$product->name} berhasil ditambahkan."
+            : "Stok {$product->name} berhasil dikurangi.",
+
+        'data' => [
+            'product_id' => $product->id,
+            'stock' => (int) $product->stock,
+        ],
+    ]);
+}
 }

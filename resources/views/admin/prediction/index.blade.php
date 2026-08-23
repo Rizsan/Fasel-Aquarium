@@ -13,23 +13,40 @@
          PAGE HEADER
     ================================================================ --}}
     <div class="mb-8">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">
-                    Prediksi Pendapatan
-                </h1>
-                <p class="mt-1 text-sm text-gray-500">
-                    Analisis tren &amp; prediksi menggunakan Simple &amp; Weighted Moving Average
-                </p>
-            </div>
-            <div class="flex items-center gap-2 text-xs text-gray-400">
-                <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-full font-medium">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                    Live Data
-                </span>
-            </div>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">
+                Prediksi Pendapatan
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">
+                Analisis tren &amp; prediksi menggunakan Simple &amp; Weighted Moving Average
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            {{-- Live Data --}}
+            <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-full text-xs font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                Live Data
+            </span>
+
+            {{-- Prediksi Penjualan --}}
+            <a
+                href="{{ route('admin.prediction.sales') }}"
+                class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm"
+            >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M3 3v18h18M7 16l4-5 3 3 5-7"
+                    />
+                </svg>
+                Prediksi Penjualan
+            </a>
         </div>
     </div>
+</div>
 
     {{-- ================================================================
          FLASH MESSAGE

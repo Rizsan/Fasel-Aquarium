@@ -219,11 +219,38 @@ Route::prefix('admin')
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
             
-        // PREDIKSI
-        Route::get('/prediction', [PredictionController::class, 'index'])
-            ->name('prediction.index');
-        Route::get('/prediction/data', [PredictionController::class, 'getData'])
-            ->name('prediction.data');
+        // ==========================================================
+// PREDIKSI
+// ==========================================================
+
+Route::get('/prediction', [PredictionController::class, 'index'])
+    ->name('prediction.index');
+
+Route::get('/prediction/data', [PredictionController::class, 'getData'])
+    ->name('prediction.data');
+
+// ----------------------------------------------------------
+// PREDIKSI PENJUALAN
+// ----------------------------------------------------------
+
+Route::get('/prediction/sales', [
+    PredictionController::class,
+    'sales'
+])->name('prediction.sales');
+
+Route::get('/prediction/sales/data', [
+    PredictionController::class,
+    'salesData'
+])->name('prediction.sales.data');
+
+// ----------------------------------------------------------
+// UPDATE STOK
+// ----------------------------------------------------------
+
+Route::patch('/prediction/sales/products/{product}/stock', [
+    PredictionController::class,
+    'updateStock'
+])->name('prediction.sales.stock');
         
         // ADMIN PROFILE
         Route::prefix('profile')->name('profile.')->group(function () {
