@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\MortalityController;
 use App\Http\Controllers\Admin\SettingsController; // Controller baru dari Claude
 use App\Http\Controllers\Admin\BackupController;   // Controller baru dari Claude
 use App\Http\Controllers\Admin\RestoreController;  // Controller baru dari Claude
@@ -267,6 +268,9 @@ Route::patch('/prediction/sales/products/{product}/stock', [
 
         // PRODUCT CRUD
         Route::resource('products', AdminProductController::class);
+
+        // MORTALITY IKAN
+        Route::resource('mortality', MortalityController::class);
 
         // ADMIN ORDERS
         Route::prefix('orders')->name('orders.')->group(function () {
