@@ -201,4 +201,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(\App\Models\Order::class);
     }
+
+    public function mortalityRecords()
+    {
+        return $this->hasMany(MortalityRecord::class, 'created_by');
+    }
 }
