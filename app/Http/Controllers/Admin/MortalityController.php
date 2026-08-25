@@ -199,7 +199,7 @@ class MortalityController extends Controller
         $products = Product::query()
             ->where(function ($query) use ($mortality) {
                 $query->where('is_active', true)
-                    ->orWhereKey($mortality->product_id);
+                    ->orWhere('id', $mortality->product_id);
             })
             ->orderBy('name')
             ->get(['id', 'name', 'stock']);
