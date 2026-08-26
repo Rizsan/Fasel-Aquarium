@@ -404,9 +404,10 @@ class PredictionService
                         $filter->weights
                     );
 
-                    $lastWma = $wmaData
-                        ->filter(fn ($value) => $value !== null)
-                        ->last() ?? 0;
+                    $predictionWma = $wmaData
+    ->filter(fn ($value) => $value !== null)
+    ->slice(-2, 1)
+    ->first() ?? 0;
 
                     // ----------------------------------------------------
                     // Total penjualan pada periode analisis
@@ -422,8 +423,8 @@ class PredictionService
                         'product_id'    => (int) $productId,
                         'product_name'  => $productName,
                         'total_qty'     => (int) $totalQty,
-                        'wma'           => round($lastWma, 2),
-                        'predicted_qty' => (int) ceil($lastWma),
+                        'wma'           => round($predictionWma, 2),
+'predicted_qty' => (int) ceil($predictionWma),
                         'stock'         => $product
                             ? (int) $product->stock
                             : 0,
