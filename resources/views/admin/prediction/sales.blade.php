@@ -609,9 +609,9 @@
                                         <td class="px-4 py-3 text-right">
 
                                             <span
-                                                x-show="row.prediction !== null"
+                                                x-show="row.wma !== null"
                                                 class="inline-flex bg-blue-100 text-blue-700 px-2 py-1 rounded-md font-semibold"
-                                                x-text="formatDecimal(row.prediction)"
+                                                x-text="formatDecimal(row.wma)"
                                             ></span>
 
                                             <span
